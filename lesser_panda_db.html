@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🦝 レッサーパンダ家系図DB</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rust:#C85C2A; --rust-light:#F5E8DE; --rust-mid:#E8A07A; --rust-dark:#8B3A18;
+    --cream:#FDF7F0; --bark:#5C3D1E; --bark-light:#8B6344;
+    --leaf:#3D6E3A; --leaf-light:#E8F0E7;
+    --charcoal:#2C2318; --muted:#8A7060;
+    --border:rgba(92,61,30,0.15); --shadow:0 2px 12px rgba(92,61,30,0.12);
+    --radius:16px; --radius-sm:10px;
+    --male-bg:#D9EAF5; --male-bd:#3A7EAF; --male-tx:#0C447C;
+    --female-bg:#FAE0EC; --female-bd:#C0537A; --female-tx:#72243E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Zen Maru Gothic',sans-serif;background:var(--cream);color:var(--charcoal);min-height:100vh;padding-bottom:90px;}
+
+  /* ── Header ── */
+  .header{background:var(--rust);padding:16px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(92,61,30,0.2);}
+  .header-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .header-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .header h1{font-size:18px;font-weight:700;color:white;line-height:1.2;}
+  .header p{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+  .search-bar{position:relative;margin-bottom:12px;}
+  .search-bar input{width:100%;padding:10px 40px 10px 14px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:50px;font-family:inherit;font-size:14px;color:white;outline:none;}
+  .search-bar input::placeholder{color:rgba(255,255,255,0.6);}
+  .search-bar input:focus{background:rgba(255,255,255,0.25);}
+  .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:rgba(255,255,255,0.7);pointer-events:none;}
+
+  /* ── Mode tabs ── */
+  .mode-tabs{display:flex;border-top:1px solid rgba(255,255,255,0.2);}
+  .mode-tab{flex:1;padding:10px 4px;font-family:inherit;font-size:13px;font-weight:700;border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.15s;}
+  .mode-tab.active{color:white;border-bottom-color:white;}
+
+  /* ── Filter / Stats ── */
+  .filter-section{padding:12px 16px 0;background:white;border-bottom:1px solid var(--border);}
+  .filter-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+  .filter-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;}
+  .filter-tabs::-webkit-scrollbar{display:none;}
+  .tab{flex-shrink:0;padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);font-family:inherit;font-size:13px;cursor:pointer;background:white;color:var(--bark-light);white-space:nowrap;transition:all 0.15s;}
+  .tab.active{background:var(--rust);border-color:var(--rust);color:white;font-weight:500;}
+
+  .stats-bar{display:flex;background:white;border-bottom:1px solid var(--border);}
+  .stat{flex:1;text-align:center;padding:10px 4px;border-right:1px solid var(--border);}
+  .stat:last-child{border-right:none;}
+  .stat-num{font-size:20px;font-weight:700;color:var(--rust);line-height:1;}
+  .stat-label{font-size:10px;color:var(--muted);margin-top:3px;}
+
+  /* ── List mode ── */
+  .main{padding:12px 16px;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .section-title{font-size:14px;font-weight:700;color:var(--bark);}
+  .count-badge{font-size:12px;background:var(--rust-light);color:var(--rust-dark);padding:3px 10px;border-radius:50px;font-weight:500;}
+  .tree-hint{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--rust-dark);background:var(--rust-light);padding:3px 10px;border-radius:50px;margin-bottom:12px;}
+
+  .panda-list{display:flex;flex-direction:column;gap:10px;}
+  .panda-card{background:white;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform 0.15s;box-shadow:var(--shadow);}
+  .panda-card:active{transform:scale(0.98);}
+  .panda-card.expanded{border-color:var(--rust-mid);}
+  .card-photo{width:100%;height:160px;object-fit:cover;display:block;background:var(--rust-light);}
+  .card-main{display:flex;align-items:center;padding:12px 14px;gap:12px;}
+  .avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;position:relative;}
+  .avatar.male{background:var(--male-bg);}
+  .avatar.female{background:var(--female-bg);}
+  .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .gender-badge{position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;}
+  .gender-badge.male{background:var(--male-bd);}
+  .gender-badge.female{background:var(--female-bd);}
+  .card-info{flex:1;min-width:0;}
+  .card-name{font-size:17px;font-weight:700;color:var(--charcoal);line-height:1.2;}
+  .card-age{font-size:13px;color:var(--muted);margin-top:3px;}
+  .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:50px;}
+  .tag-zoo{background:var(--leaf-light);color:var(--leaf);}
+  .tag-born{background:#EEF0FA;color:#4A5AA8;}
+  .tag-transfer{background:#FFF3E0;color:#B85C00;font-size:10px;}
+  .expand-arrow{font-size:18px;color:var(--muted);transition:transform 0.25s;flex-shrink:0;}
+  .panda-card.expanded .expand-arrow{transform:rotate(180deg);}
+  .card-detail{display:none;border-top:1px solid var(--border);padding:14px;background:var(--rust-light);}
+  .panda-card.expanded .card-detail{display:block;}
+  .detail-section{margin-bottom:14px;}
+  .detail-section:last-child{margin-bottom:0;}
+  .detail-section-title{font-size:11px;font-weight:700;color:var(--rust-dark);letter-spacing:0.05em;margin-bottom:8px;}
+  .family-row{display:flex;gap:8px;}
+  .family-chip{flex:1;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;transition:all 0.15s;text-align:center;}
+  .family-chip.unknown{opacity:0.5;cursor:default;}
+  .family-chip-role{font-size:10px;color:var(--muted);font-weight:500;}
+  .family-chip-name{font-size:14px;font-weight:700;color:var(--bark);margin-top:3px;}
+  .family-chip-zoo{font-size:11px;color:var(--muted);margin-top:2px;}
+  .family-chip:not(.unknown):hover{border-color:var(--rust-mid);background:#FFF5EF;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .detail-item{background:white;border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--border);}
+  .detail-item.wide{grid-column:1/-1;}
+  .detail-item-label{font-size:10px;color:var(--muted);font-weight:500;}
+  .detail-item-value{font-size:13px;font-weight:700;color:var(--charcoal);margin-top:3px;}
+  .children-list{display:flex;flex-direction:column;gap:6px;}
+  .child-chip{background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.15s;}
+  .child-chip:hover{border-color:var(--rust-mid);}
+  .child-chip-name{font-size:14px;font-weight:700;color:var(--bark);}
+  .child-chip-info{font-size:12px;color:var(--muted);}
+  .no-results{text-align:center;padding:40px 20px;color:var(--muted);}
+  .no-results-icon{font-size:48px;margin-bottom:12px;}
+  .transfer-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#FFF3E0;color:#B85C00;padding:2px 8px;border-radius:50px;border:1px solid #FFD9A0;}
+
+  /* ── Tree mode ── */
+  #treeMode{display:none;padding:12px 16px;}
+  #treeMode.active{display:block;}
+  #listMode{display:block;}
+  #listMode.hidden{display:none;}
+
+  .tree-search-bar{position:relative;margin-bottom:12px;}
+  .tree-search-bar input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;color:var(--charcoal);outline:none;background:white;}
+  .tree-search-bar input:focus{border-color:var(--rust);}
+  .tree-search-results{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);z-index:50;max-height:200px;overflow-y:auto;box-shadow:var(--shadow);display:none;}
+  .tree-search-results.open{display:block;}
+  .tree-search-item{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);}
+  .tree-search-item:last-child{border-bottom:none;}
+  .tree-search-item:hover{background:var(--rust-light);}
+  .tree-search-item strong{color:var(--rust);}
+
+  .tree-center-info{background:white;border:1.5px solid var(--rust-mid);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+  .tree-center-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;flex-shrink:0;}
+  .tree-center-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .tree-center-name{font-size:18px;font-weight:700;color:var(--charcoal);}
+  .tree-center-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+
+  .tree-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+  .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+  .tree-svg-wrap{background:white;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  .tree-svg-wrap svg{display:block;width:100%;}
+
+  /* ── Modal / Form ── */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:white;border-radius:24px 24px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 20px 50px;animation:slide-up 0.25s ease;}
+  @keyframes slide-up{from{transform:translateY(60px);opacity:0;}}
+  .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+  .form-title{font-size:18px;font-weight:700;color:var(--bark);margin-bottom:16px;}
+  .form-group{margin-bottom:14px;}
+  .form-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;display:block;}
+  .form-input,.form-select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:15px;color:var(--charcoal);background:white;outline:none;transition:border-color 0.15s;appearance:none;}
+  .form-input:focus,.form-select:focus{border-color:var(--rust);}
+  .form-hint{font-size:11px;color:var(--muted);margin-top:5px;}
+  .form-hint.warn{color:#B85C00;}
+  .photo-upload-area{border:2px dashed var(--rust-mid);border-radius:var(--radius-sm);padding:20px;text-align:center;cursor:pointer;transition:background 0.15s;background:var(--rust-light);}
+  .photo-upload-area:hover{background:#F0DDD0;}
+  .photo-upload-area input{display:none;}
+  .photo-preview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);margin-top:10px;display:none;}
+  .copyright-notice{display:flex;align-items:flex-start;gap:8px;background:#FFFBEB;border:1.5px solid #F5C842;border-radius:var(--radius-sm);padding:10px 12px;margin-top:10px;}
+  .copyright-notice-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+  .copyright-notice-text{font-size:12px;color:#7A5C00;line-height:1.6;}
+  .gender-select{display:flex;gap:8px;}
+  .gender-opt{flex:1;}
+  .gender-opt input{display:none;}
+  .gender-opt label{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:all 0.15s;}
+  .gender-opt input:checked+label{background:var(--rust-light);border-color:var(--rust);color:var(--rust-dark);}
+  .form-row{display:flex;gap:10px;}
+  .form-row .form-group{flex:1;}
+  .btn-primary{width:100%;padding:14px;background:var(--rust);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:background 0.15s;}
+  .btn-primary:active{background:var(--rust-dark);}
+  .fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;background:var(--rust);border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:26px;color:white;cursor:pointer;box-shadow:0 4px 16px rgba(200,92,42,0.4);transition:transform 0.15s;z-index:150;}
+  .fab:active{transform:scale(0.93);}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-icon">🦝</div>
+    <div>
+      <h1>レッサーパンダ家系図DB</h1>
+      <p>全国の動物園のレッサーパンダ記録</p>
+    </div>
+  </div>
+  <div class="search-bar" id="listSearchWrap">
+    <input type="text" id="searchInput" placeholder="名前・動物園で検索…" oninput="renderList()">
+    <span class="search-icon">🔍</span>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabList" onclick="switchMode('list')">📋 一覧</button>
+    <button class="mode-tab" id="tabTree" onclick="switchMode('tree')">🌳 家系図</button>
+  </div>
+</div>
+
+<!-- Filter / Stats (list only) -->
+<div id="filterWrap">
+  <div class="filter-section">
+    <div class="filter-label">現在の飼育動物園でしぼる</div>
+    <div class="filter-tabs" id="filterTabs"></div>
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</div>
+
+<!-- LIST MODE -->
+<div id="listMode" class="main">
+  <div class="section-header">
+    <span class="section-title">個体一覧</span>
+    <span class="count-badge" id="countBadge">0頭</span>
+  </div>
+  <div class="tree-hint">💡 カードをタップで詳細・家族情報を表示</div>
+  <div class="panda-list" id="pandaList"></div>
+</div>
+
+<!-- TREE MODE -->
+<div id="treeMode">
+  <div style="position:relative;">
+    <div class="tree-search-bar">
+      <input type="text" id="treeSearch" placeholder="中心にする個体を検索…" oninput="treeSearchInput()" autocomplete="off">
+    </div>
+    <div class="tree-search-results" id="treeSearchResults"></div>
+  </div>
+  <div id="treeCenterInfo" style="display:none" class="tree-center-info">
+    <div class="tree-center-avatar male" id="treeCenterAvatar">🦝</div>
+    <div>
+      <div class="tree-center-name" id="treeCenterName">—</div>
+      <div class="tree-center-sub" id="treeCenterSub">—</div>
+    </div>
+    <button onclick="openEditModalFromTree()" style="margin-left:auto;padding:7px 12px;background:var(--rust-light);border:1.5px solid var(--rust-mid);border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;color:var(--rust-dark);cursor:pointer;">✏️ 編集</button>
+  </div>
+  <div class="tree-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--male-bg);border:1px solid var(--male-bd)"></div>オス</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--female-bg);border:1px solid var(--female-bd)"></div>メス</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FDF7F0;border:2px solid var(--rust)"></div>表示中心</div>
+    <div class="legend-item"><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#aaa" stroke-width="1.2" stroke-dasharray="4 3"/></svg>兄弟姉妹</div>
+  </div>
+  <div class="tree-svg-wrap" id="treeSvgWrap">
+    <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;">
+      上の検索欄から個体を選んでください
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="openAddModal()">＋</button>
+
+<!-- Modal -->
+<div class="modal-bg" id="modalBg" onclick="handleBgClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="form-title" id="formTitle">🦝 新しい個体を登録</div>
+    <div class="form-group">
+      <label class="form-label">📸 写真（任意）</label>
+      <div class="photo-upload-area" onclick="document.getElementById('f_photo_file').click()">
+        <div style="font-size:28px;margin-bottom:6px">📷</div>
+        <div style="font-size:13px;color:var(--muted)">タップして写真を選択</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">推奨：1MB以下のJPEG/PNG</div>
+        <input type="file" id="f_photo_file" accept="image/*" onchange="handleFileSelect(event)">
+      </div>
+      <img id="photo_preview_file" class="photo-preview" alt="プレビュー">
+      <div class="copyright-notice">
+        <span class="copyright-notice-icon">⚠️</span>
+        <div class="copyright-notice-text">
+          <strong>著作権についてのお願い</strong><br>
+          アップロードできる写真は、<strong>ご自身で撮影した写真</strong>または<strong>権利フリー（CC0等）の画像</strong>に限ります。動物園の公式サイト・SNS・書籍などから取得した画像は著作権者の許可なく使用できません。
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">名前 *</label>
+      <input class="form-input" id="f_name" placeholder="例：コユキ">
+    </div>
+    <div class="form-group">
+      <label class="form-label">性別</label>
+      <div class="gender-select">
+        <div class="gender-opt"><input type="radio" name="gender" id="g_male" value="male" checked><label for="g_male">♂ オス</label></div>
+        <div class="gender-opt"><input type="radio" name="gender" id="g_female" value="female"><label for="g_female">♀ メス</label></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">生年月日</label>
+      <input class="form-input" id="f_birth" type="date">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">🏡 生まれた動物園</label>
+        <input class="form-input" id="f_birth_zoo" placeholder="例：多摩動物公園">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🌿 現在の飼育動物園 *</label>
+        <input class="form-input" id="f_zoo" placeholder="例：上野動物園">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">父親の名前</label>
+        <select class="form-select" id="f_father"><option value="">-- 不明 --</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">母親の名前</label>
+        <select class="form-select" id="f_mother"><option value="">-- 不明 --</option></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <input class="form-input" id="f_notes" placeholder="特徴など自由記入">
+    </div>
+    <div class="form-hint warn">⚠️ 写真データはブラウザに保存されます。ストレージ上限（約5MB）に注意してください。</div>
+    <button class="btn-primary" onclick="saveRecord()">登録する</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const GENDER_LABEL = {male:'♂', female:'♀'};
+let pendingPhotoData = null;
+
+let db = JSON.parse(localStorage.getItem('panda_db_v2') || 'null');
+if (!db) {
+  const old = localStorage.getItem('panda_db');
+  if (old) {
+    db = JSON.parse(old).map(p=>({...p, birth_zoo:p.birth_zoo||p.zoo, photo:p.photo||''}));
+  } else {
+    db = [
+      {id:1, name:'コユキ', gender:'female', birth:'2018-05-12', birth_zoo:'上野動物園', zoo:'上野動物園', father:'キリ', mother:'ハナ', notes:'白い顔が特徴的な人気者', photo:''},
+      {id:2, name:'キリ', gender:'male', birth:'2013-03-08', birth_zoo:'多摩動物公園', zoo:'上野動物園', father:'ミツル', mother:'サクラ', notes:'コユキ・コハルの父', photo:''},
+      {id:3, name:'ハナ', gender:'female', birth:'2015-07-22', birth_zoo:'神戸市立王子動物園', zoo:'上野動物園', father:'', mother:'', notes:'コユキ・コハルの母', photo:''},
+      {id:4, name:'ミツル', gender:'male', birth:'2005-04-10', birth_zoo:'上野動物園', zoo:'上野動物園', father:'', mother:'', notes:'キリの父（祖父世代）', photo:''},
+      {id:5, name:'サクラ', gender:'female', birth:'2007-06-20', birth_zoo:'上野動物園', zoo:'上野動物園', father:'', mother:'', notes:'キリの母（祖父世代）', photo:''},
+      {id:6, name:'モミジ', gender:'male', birth:'2020-06-03', birth_zoo:'多摩動物公園', zoo:'多摩動物公園', father:'', mother:'', notes:'活発な性格', photo:''},
+      {id:7, name:'ユキ', gender:'female', birth:'2019-04-18', birth_zoo:'神戸市立王子動物園', zoo:'神戸市立王子動物園', father:'', mother:'', notes:'', photo:''},
+      {id:8, name:'コハル', gender:'female', birth:'2021-05-30', birth_zoo:'上野動物園', zoo:'上野動物園', father:'キリ', mother:'ハナ', notes:'コユキの妹', photo:''},
+      {id:9, name:'テン', gender:'male', birth:'2016-06-11', birth_zoo:'仙台市八木山動物公園', zoo:'仙台市八木山動物公園', father:'', mother:'', notes:'木登りが得意', photo:''},
+      {id:10, name:'アカリ', gender:'female', birth:'2022-07-07', birth_zoo:'多摩動物公園', zoo:'多摩動物公園', father:'モミジ', mother:'', notes:'', photo:''},
+      {id:11, name:'フク', gender:'male', birth:'2014-05-01', birth_zoo:'福岡市動物園', zoo:'福岡市動物園', father:'', mother:'', notes:'おっとりした性格', photo:''},
+      {id:12, name:'ソラ', gender:'male', birth:'2023-06-15', birth_zoo:'神戸市立王子動物園', zoo:'神戸市立王子動物園', father:'', mother:'ユキ', notes:'2023年生まれ', photo:''},
+      {id:13, name:'ナギ', gender:'female', birth:'2020-04-10', birth_zoo:'多摩動物公園', zoo:'仙台市八木山動物公園', father:'', mother:'', notes:'多摩から仙台へ転園', photo:''},
+    ];
+  }
+  saveDb();
+}
+let nextId = Math.max(...db.map(d=>d.id))+1;
+let activeZoo = 'all';
+let editId = null;
+let currentMode = 'list';
+let treeCenter = null;
+
+function saveDb(){ localStorage.setItem('panda_db_v2', JSON.stringify(db)); }
+function calcAge(birth){
+  if(!birth) return '不明';
+  const b=new Date(birth), now=new Date();
+  let y=now.getFullYear()-b.getFullYear();
+  if(now.getMonth()-b.getMonth()<0||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))y--;
+  return y+'歳';
+}
+function isTransferred(p){ return p.birth_zoo&&p.zoo&&p.birth_zoo!==p.zoo; }
+function getZoos(){ return ['all',...new Set(db.map(d=>d.zoo).filter(Boolean))]; }
+function getChildren(name){ return db.filter(d=>d.father===name||d.mother===name); }
+function find(name){ return db.find(d=>d.name===name); }
+
+/* ═══════════════════════════════════════════
+   MODE SWITCH
+═══════════════════════════════════════════ */
+function switchMode(mode){
+  currentMode = mode;
+  document.getElementById('tabList').classList.toggle('active', mode==='list');
+  document.getElementById('tabTree').classList.toggle('active', mode==='tree');
+  document.getElementById('filterWrap').style.display = mode==='list'?'':'none';
+  document.getElementById('listSearchWrap').style.display = mode==='list'?'':'none';
+  document.getElementById('listMode').classList.toggle('hidden', mode!=='list');
+  document.getElementById('treeMode').classList.toggle('active', mode==='tree');
+  if(mode==='tree' && treeCenter) renderTree(treeCenter);
+}
+
+/* ═══════════════════════════════════════════
+   LIST MODE
+═══════════════════════════════════════════ */
+function renderTabs(){
+  const tabs = document.getElementById('filterTabs');
+  tabs.innerHTML = getZoos().map(z=>`
+    <button class="tab ${activeZoo===z?'active':''}" onclick="setZoo('${z.replace(/'/g,"\\'")}')">
+      ${z==='all'?'🗾 すべて':'🌿 '+z}
+    </button>`).join('');
+}
+function setZoo(zoo){ activeZoo=zoo; renderTabs(); renderList(); }
+
+function getFiltered(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  return db.filter(d=>{
+    const ms=!q||d.name.toLowerCase().includes(q)||(d.zoo||'').toLowerCase().includes(q)||(d.birth_zoo||'').toLowerCase().includes(q);
+    const mz=activeZoo==='all'||d.zoo===activeZoo;
+    return ms&&mz;
+  });
+}
+function renderStats(){
+  const bar=document.getElementById('statsBar');
+  const total=db.length, males=db.filter(d=>d.gender==='male').length;
+  const zoos=new Set(db.map(d=>d.zoo).filter(Boolean)).size;
+  bar.innerHTML=`
+    <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">総頭数</div></div>
+    <div class="stat"><div class="stat-num">${males}</div><div class="stat-label">♂ オス</div></div>
+    <div class="stat"><div class="stat-num">${total-males}</div><div class="stat-label">♀ メス</div></div>
+    <div class="stat"><div class="stat-num">${zoos}</div><div class="stat-label">施設数</div></div>`;
+}
+function renderList(){
+  const list=document.getElementById('pandaList');
+  const filtered=getFiltered();
+  document.getElementById('countBadge').textContent=filtered.length+'頭';
+  if(!filtered.length){
+    list.innerHTML=`<div class="no-results"><div class="no-results-icon">🔍</div><div>該当する個体が見つかりませんでした</div></div>`;
+    return;
+  }
+  list.innerHTML=filtered.map(p=>{
+    const father=find(p.father), mother=find(p.mother);
+    const children=getChildren(p.name);
+    const transferred=isTransferred(p);
+    const photoHtml=p.photo?`<img class="card-photo" src="${p.photo}" alt="${p.name}の写真" onerror="this.style.display='none'">`:'';
+    const avatarInner=p.photo?`<img src="${p.photo}" alt="${p.name}" onerror="this.innerHTML='🦝'">`:'🦝';
+    const transferTag=transferred?`<span class="tag tag-transfer">🚌 ${p.birth_zoo}から転園</span>`:'';
+    const fHtml=p.father
+      ?`<div class="family-chip" onclick="jumpTo('${p.father}',event)"><div class="family-chip-role">👨 父</div><div class="family-chip-name">${p.father}</div><div class="family-chip-zoo">${father?father.zoo:''}</div></div>`
+      :`<div class="family-chip unknown"><div class="family-chip-role">👨 父</div><div class="family-chip-name">不明</div></div>`;
+    const mHtml=p.mother
+      ?`<div class="family-chip" onclick="jumpTo('${p.mother}',event)"><div class="family-chip-role">👩 母</div><div class="family-chip-name">${p.mother}</div><div class="family-chip-zoo">${mother?mother.zoo:''}</div></div>`
+      :`<div class="family-chip unknown"><div class="family-chip-role">👩 母</div><div class="family-chip-name">不明</div></div>`;
+    const childrenHtml=children.length?`
+      <div class="detail-section">
+        <div class="detail-section-title">🍼 子ども（${children.length}頭）</div>
+        <div class="children-list">${children.map(c=>`
+          <div class="child-chip" onclick="jumpTo('${c.name}',event)">
+            <span style="font-size:20px">${c.gender==='female'?'🔴':'🔵'}</span>
+            <div><div class="child-chip-name">${c.name}</div><div class="child-chip-info">${calcAge(c.birth)} ・ ${c.zoo}</div></div>
+            <span style="margin-left:auto;color:var(--muted)">›</span>
+          </div>`).join('')}
+        </div>
+      </div>`:'';
+    const notesHtml=p.notes?`
+      <div class="detail-section">
+        <div class="detail-section-title">📝 メモ</div>
+        <div style="font-size:14px;color:var(--bark);background:white;border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--border)">${p.notes}</div>
+      </div>`:'';
+    const zooDetailHtml=transferred?`
+      <div class="detail-item wide"><div class="detail-item-label">🏡 生まれた動物園</div><div class="detail-item-value">${p.birth_zoo}</div></div>
+      <div class="detail-item wide"><div class="detail-item-label">🌿 現在の飼育動物園</div><div class="detail-item-value">${p.zoo} <span class="transfer-badge">転園</span></div></div>`
+      :`<div class="detail-item wide"><div class="detail-item-label">🌿 飼育動物園（出生地と同じ）</div><div class="detail-item-value">${p.zoo}</div></div>`;
+    return `
+    <div class="panda-card" id="card-${p.id}" onclick="toggleCard(${p.id})">
+      ${photoHtml}
+      <div class="card-main">
+        <div class="avatar ${p.gender}">${avatarInner}<div class="gender-badge ${p.gender}">${GENDER_LABEL[p.gender]}</div></div>
+        <div class="card-info">
+          <div class="card-name">${p.name}</div>
+          <div class="card-age">${calcAge(p.birth)}${p.birth?' ・ '+p.birth.replace(/-/g,'/'):''}</div>
+          <div class="card-tags">
+            <span class="tag tag-zoo">🌿 ${p.zoo}</span>
+            ${p.birth_zoo&&p.birth_zoo!==p.zoo?`<span class="tag tag-born">🏡 ${p.birth_zoo}生まれ</span>`:''}
+            ${transferTag}
+          </div>
+        </div>
+        <span class="expand-arrow">⌄</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-section">
+          <div class="detail-section-title">🌳 両親</div>
+          <div class="family-row">${fHtml}${mHtml}</div>
+        </div>
+        ${childrenHtml}
+        <div class="detail-section">
+          <div class="detail-section-title">📋 基本情報</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-item-label">名前</div><div class="detail-item-value">${p.name}</div></div>
+            <div class="detail-item"><div class="detail-item-label">年齢</div><div class="detail-item-value">${calcAge(p.birth)}</div></div>
+            <div class="detail-item"><div class="detail-item-label">性別</div><div class="detail-item-value">${p.gender==='male'?'♂ オス':'♀ メス'}</div></div>
+            <div class="detail-item"><div class="detail-item-label">誕生日</div><div class="detail-item-value" style="font-size:12px">${p.birth?p.birth.replace(/-/g,'/'):'不明'}</div></div>
+            ${zooDetailHtml}
+          </div>
+        </div>
+        ${notesHtml}
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button onclick="openEditModal(${p.id},event)" style="flex:1;padding:10px;background:var(--rust-light);border:1.5px solid var(--rust-mid);border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:var(--rust-dark);cursor:pointer">✏️ 編集</button>
+          <button onclick="deleteRecord(${p.id},event)" style="flex:1;padding:10px;background:white;border:1.5px solid #ecc;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:#c55;cursor:pointer">🗑️ 削除</button>
+        </div>
+        <div style="margin-top:8px">
+          <button onclick="openTreeFromList(${p.id},event)" style="width:100%;padding:10px;background:var(--leaf-light);border:1.5px solid var(--leaf);border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:var(--leaf);cursor:pointer">🌳 家系図で見る</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleCard(id){ document.getElementById('card-'+id)?.classList.toggle('expanded'); }
+function jumpTo(name,e){
+  e.stopPropagation();
+  const target=find(name); if(!target) return;
+  document.querySelectorAll('.panda-card').forEach(c=>c.classList.remove('expanded'));
+  activeZoo='all'; document.getElementById('searchInput').value='';
+  renderTabs(); renderList();
+  setTimeout(()=>{ const card=document.getElementById('card-'+target.id); if(card){card.classList.add('expanded');card.scrollIntoView({behavior:'smooth',block:'center'});} },50);
+}
+function openTreeFromList(id,e){
+  e.stopPropagation();
+  const p=db.find(d=>d.id===id); if(!p) return;
+  switchMode('tree'); setTreeCenter(p.name);
+}
+
+/* ═══════════════════════════════════════════
+   TREE MODE — search
+═══════════════════════════════════════════ */
+function treeSearchInput(){
+  const q=document.getElementById('treeSearch').value.trim().toLowerCase();
+  const res=document.getElementById('treeSearchResults');
+  if(!q){ res.classList.remove('open'); res.innerHTML=''; return; }
+  const matches=db.filter(d=>d.name.toLowerCase().includes(q)||(d.zoo||'').toLowerCase().includes(q));
+  if(!matches.length){ res.innerHTML='<div class="tree-search-item" style="color:var(--muted)">見つかりませんでした</div>'; res.classList.add('open'); return; }
+  res.innerHTML=matches.slice(0,8).map(d=>`
+    <div class="tree-search-item" onclick="setTreeCenter('${d.name}')">
+      <strong>${d.name}</strong> <span style="color:var(--muted);font-size:12px">${GENDER_LABEL[d.gender]} ${calcAge(d.birth)} ${d.zoo}</span>
+    </div>`).join('');
+  res.classList.add('open');
+}
+function setTreeCenter(name){
+  document.getElementById('treeSearch').value='';
+  document.getElementById('treeSearchResults').classList.remove('open');
+  treeCenter=name;
+  renderTree(name);
+  // update header card
+  const p=find(name); if(!p) return;
+  const info=document.getElementById('treeCenterInfo');
+  info.style.display='flex';
+  document.getElementById('treeCenterName').textContent=p.name;
+  document.getElementById('treeCenterSub').textContent=`${GENDER_LABEL[p.gender]} ${calcAge(p.birth)} ・ ${p.zoo}`;
+  const av=document.getElementById('treeCenterAvatar');
+  av.className=`tree-center-avatar ${p.gender}`;
+  av.innerHTML=p.photo?`<img src="${p.photo}" alt="" onerror="this.innerHTML='🦝'">`:'🦝';
+}
+
+/* ═══════════════════════════════════════════
+   TREE MODE — render SVG
+═══════════════════════════════════════════ */
+function renderTree(centerName){
+  const p=find(centerName); if(!p){ document.getElementById('treeSvgWrap').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">個体が見つかりません</div>'; return; }
+
+  // Collect nodes per generation
+  // Gen0=grandparents, Gen1=parents, Gen2=center+siblings, Gen3=children
+  const father=find(p.father);
+  const mother=find(p.mother);
+  const gfp=father?find(father.father):null; // paternal grandfather
+  const gmp=father?find(father.mother):null; // paternal grandmother
+  const gfm=mother?find(mother.father):null; // maternal grandfather
+  const gmm=mother?find(mother.mother):null; // maternal grandmother
+  const siblings=db.filter(d=>d.name!==p.name&&((p.father&&d.father===p.father)||(p.mother&&d.mother===p.mother)));
+  const children=getChildren(p.name);
+
+  // Layout constants
+  const W=380, NH=52, LMARGIN=8;
+  const rowY=[50, 140, 235, 330];
+  const halfH=NH/2;
+
+  // Compute safe node width so all nodes fit within W
+  function safeNW(count){
+    if(count<=2) return 100;
+    if(count===3) return 88;
+    return Math.floor((W - LMARGIN*2 - (count-1)*8) / count);
+  }
+
+  // Helper: place nodes evenly in a row
+  function placeRow(nodes, yCenter){
+    const nw=safeNW(nodes.length);
+    const gap=nodes.length<=2?12:8;
+    const total=nodes.length*(nw+gap)-gap;
+    const startX=Math.max(LMARGIN, (W-total)/2);
+    return nodes.map((n,i)=>({node:n, nw, x:startX+i*(nw+gap), y:yCenter-halfH, cx:startX+i*(nw+gap)+nw/2, cy:yCenter}));
+  }
+
+  // Grandparents row — up to 4, left=paternal, right=maternal
+  const gps=[gfp,gmp,gfm,gmm].filter(Boolean);
+  const gpRow=placeRow(gps, rowY[0]);
+  // Map grandparent name→position
+  const gpMap={}; gpRow.forEach(r=>{ if(r.node) gpMap[r.node.name]=r; });
+
+  // Parents row
+  const parents=[father,mother].filter(Boolean);
+  const parRow=placeRow(parents, rowY[1]);
+  const parMap={}; parRow.forEach(r=>{ if(r.node) parMap[r.node.name]=r; });
+
+  // Center + siblings row (center first, then siblings, max 4 siblings shown)
+  const MAX_SIB=3;
+  const sibShown=siblings.slice(0,MAX_SIB);
+  const sibExtra=siblings.length-MAX_SIB;
+  const gen2nodes=[p,...sibShown];
+  const gen2row=placeRow(gen2nodes, rowY[2]);
+  const centerPos=gen2row[0];
+
+  // Children row (max 4)
+  const MAX_CHILD=4;
+  const childShown=children.slice(0,MAX_CHILD);
+  const childExtra=children.length-MAX_CHILD;
+  const childRow=placeRow(childShown, rowY[3]);
+
+  // SVG height
+  const svgH=children.length>0?390:310;
+
+  // Node drawing helper
+  function nodeRect(pos, isCenter=false, isDim=false){
+    const n=pos.node;
+    const nw=pos.nw||100;
+    const isMale=n.gender==='male';
+    const fill=isMale?'#D9EAF5':'#FAE0EC';
+    const stroke=isCenter?'#C85C2A':isMale?'#3A7EAF':'#C0537A';
+    const sw=isCenter?'2':'1';
+    const opacity=isDim?'opacity="0.65"':'';
+    const nameColor=isMale?'#0C447C':'#72243E';
+    const subColor=isMale?'#185FA5':'#993556';
+    const shortName=n.name.length>5?n.name.slice(0,5)+'…':n.name;
+    const ageStr=calcAge(n.birth);
+    return `
+      <g class="tree-node" onclick="setTreeCenter('${n.name}')" style="cursor:pointer" ${opacity}>
+        <rect x="${pos.x}" y="${pos.y}" width="${nw}" height="${NH}" rx="10"
+          fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+        <text x="${pos.cx}" y="${pos.y+20}" text-anchor="middle" dominant-baseline="central"
+          font-size="13" font-weight="500" fill="${nameColor}" font-family="'Zen Maru Gothic',sans-serif">${shortName}</text>
+        <text x="${pos.cx}" y="${pos.y+37}" text-anchor="middle" dominant-baseline="central"
+          font-size="10" fill="${subColor}" font-family="'Zen Maru Gothic',sans-serif">${GENDER_LABEL[n.gender]} ${ageStr}</text>
+      </g>`;
+  }
+
+  // Connector line helper
+  function line(x1,y1,x2,y2,dash=false){
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#C8A88A" stroke-width="1.5" ${dash?'stroke-dasharray="5 3"':''} fill="none"/>`;
+  }
+  function vline(x,y1,y2){ return line(x,y1,x,y2); }
+  function hline(x1,x2,y){ return line(x1,y,x2,y); }
+
+  let svgParts=[];
+
+  // ── Gen0→Gen1 connectors ──
+  parRow.forEach(pr=>{
+    const pn=pr.node;
+    // paternal side
+    if(pn.name===father?.name){
+      if(gpMap[pn.father]){
+        const gp=gpMap[pn.father];
+        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+18));
+        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+18));
+        svgParts.push(vline(pr.cx, rowY[0]+halfH+18, rowY[1]-halfH));
+      }
+      if(gpMap[pn.mother]){
+        const gp=gpMap[pn.mother];
+        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+18));
+        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+18));
+        svgParts.push(vline(pr.cx, rowY[0]+halfH+18, rowY[1]-halfH));
+      }
+    }
+    if(pn.name===mother?.name){
+      if(gpMap[pn.father]){
+        const gp=gpMap[pn.father];
+        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+30));
+        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+30));
+        svgParts.push(vline(pr.cx, rowY[0]+halfH+30, rowY[1]-halfH));
+      }
+      if(gpMap[pn.mother]){
+        const gp=gpMap[pn.mother];
+        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+30));
+        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+30));
+        svgParts.push(vline(pr.cx, rowY[0]+halfH+30, rowY[1]-halfH));
+      }
+    }
+  });
+
+  // ── Gen1→Gen2 (center) connector ──
+  const midY=rowY[1]+halfH+Math.round((rowY[2]-halfH-(rowY[1]+halfH))/2);
+  if(father&&mother&&parMap[father.name]&&parMap[mother.name]){
+    const fpos=parMap[father.name], mpos=parMap[mother.name];
+    svgParts.push(vline(fpos.cx, rowY[1]+halfH, midY));
+    svgParts.push(vline(mpos.cx, rowY[1]+halfH, midY));
+    svgParts.push(hline(fpos.cx, mpos.cx, midY));
+    svgParts.push(vline(centerPos.cx, midY, rowY[2]-halfH));
+  } else if(father&&parMap[father.name]){
+    svgParts.push(vline(parMap[father.name].cx, rowY[1]+halfH, rowY[2]-halfH));
+  } else if(mother&&parMap[mother.name]){
+    svgParts.push(vline(parMap[mother.name].cx, rowY[1]+halfH, rowY[2]-halfH));
+  }
+
+  // ── Siblings (dashed from same midpoint or parent) ──
+  gen2row.slice(1).forEach(sr=>{
+    svgParts.push(hline(centerPos.cx, sr.cx, rowY[2]-halfH-10));
+    svgParts.push(vline(sr.cx, rowY[2]-halfH-10, rowY[2]-halfH));
+    // marker dashed
+    svgParts.push(`<line x1="${centerPos.cx}" y1="${rowY[2]-halfH-10}" x2="${sr.cx}" y2="${rowY[2]-halfH-10}" stroke="#C8A88A" stroke-width="1.2" stroke-dasharray="5 3" fill="none"/>`);
+  });
+
+  // ── Gen2→Gen3 connectors ──
+  if(childRow.length>0){
+    svgParts.push(vline(centerPos.cx, rowY[2]+halfH, midY+Math.round((rowY[3]-halfH-(rowY[2]+halfH))/2)));
+    const childMidY=rowY[2]+halfH+Math.round((rowY[3]-halfH-(rowY[2]+halfH))/2);
+    svgParts.push(vline(centerPos.cx, rowY[2]+halfH, childMidY));
+    const minCX=Math.min(...childRow.map(r=>r.cx));
+    const maxCX=Math.max(...childRow.map(r=>r.cx));
+    if(childRow.length>1) svgParts.push(hline(minCX, maxCX, childMidY));
+    childRow.forEach(cr=>{ svgParts.push(vline(cr.cx, childMidY, rowY[3]-halfH)); });
+  }
+
+  // ── Draw nodes ──
+  // Grandparents (dimmed)
+  gpRow.forEach(r=>{ svgParts.push(nodeRect(r, false, true)); });
+  // Parents
+  parRow.forEach(r=>{ svgParts.push(nodeRect(r, false, false)); });
+  // Gen2: center (highlighted) + siblings (slightly dimmed)
+  gen2row.forEach((r,i)=>{ svgParts.push(nodeRect(r, i===0, i>0)); });
+  // Children
+  childRow.forEach(r=>{ svgParts.push(nodeRect(r)); });
+
+  // Gen labels (left margin)
+  const genLabels=[
+    gps.length?{y:rowY[0],label:'祖父母'}:null,
+    parents.length?{y:rowY[1],label:'親'}:null,
+    {y:rowY[2],label:'本人'},
+    children.length?{y:rowY[3],label:'子'}:null,
+  ].filter(Boolean);
+  genLabels.forEach(({y,label})=>{
+    svgParts.push(`<text x="14" y="${y}" text-anchor="start" dominant-baseline="central" font-size="10" fill="#8A7060" font-family="'Zen Maru Gothic',sans-serif">${label}</text>`);
+  });
+
+  // +N badges
+  if(sibExtra>0){
+    const last=gen2row[gen2row.length-1];
+    const bx=last.x+last.nw+8, by=last.y;
+    svgParts.push(`<rect x="${bx}" y="${by}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/>`);
+    svgParts.push(`<text x="${bx+17}" y="${by+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${sibExtra}</text>`);
+  }
+  if(childExtra>0){
+    const last=childRow[childRow.length-1];
+    const bx=last.x+last.nw+8, by=last.y;
+    svgParts.push(`<rect x="${bx}" y="${by}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/>`);
+    svgParts.push(`<text x="${bx+17}" y="${by+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${childExtra}</text>`);
+  }
+
+  const svg=`<svg width="100%" viewBox="0 0 ${W} ${svgH}" style="display:block;overflow:visible">${svgParts.join('')}</svg>`;
+  document.getElementById('treeSvgWrap').innerHTML=svg;
+}
+
+/* ═══════════════════════════════════════════
+   FORM / MODAL
+═══════════════════════════════════════════ */
+function handleFileSelect(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ pendingPhotoData=ev.target.result; const prev=document.getElementById('photo_preview_file'); prev.src=pendingPhotoData; prev.style.display='block'; };
+  reader.readAsDataURL(file);
+}
+function populateParentSelects(excludeId=null){
+  const males=db.filter(d=>d.gender==='male'&&d.id!==excludeId);
+  const females=db.filter(d=>d.gender==='female'&&d.id!==excludeId);
+  document.getElementById('f_father').innerHTML='<option value="">-- 不明 --</option>'+males.map(d=>`<option value="${d.name}">${d.name}（${d.zoo}）</option>`).join('');
+  document.getElementById('f_mother').innerHTML='<option value="">-- 不明 --</option>'+females.map(d=>`<option value="${d.name}">${d.name}（${d.zoo}）</option>`).join('');
+}
+function resetPhotoForm(){
+  pendingPhotoData=null;
+  document.getElementById('f_photo_file').value='';
+  document.getElementById('photo_preview_file').style.display='none';
+}
+function openAddModal(){
+  editId=null;
+  document.getElementById('formTitle').textContent='🦝 新しい個体を登録';
+  ['f_name','f_birth','f_birth_zoo','f_zoo','f_notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('g_male').checked=true;
+  resetPhotoForm(); populateParentSelects();
+  document.getElementById('modalBg').classList.add('open');
+}
+function openEditModal(id,e){
+  e.stopPropagation(); editId=id;
+  const p=db.find(d=>d.id===id); if(!p) return;
+  document.getElementById('formTitle').textContent='✏️ '+p.name+' を編集';
+  document.getElementById('f_name').value=p.name;
+  document.getElementById('f_birth').value=p.birth||'';
+  document.getElementById('f_birth_zoo').value=p.birth_zoo||'';
+  document.getElementById('f_zoo').value=p.zoo||'';
+  document.getElementById('f_notes').value=p.notes||'';
+  document.getElementById(p.gender==='female'?'g_female':'g_male').checked=true;
+  resetPhotoForm();
+  if(p.photo){ pendingPhotoData=p.photo; const prev=document.getElementById('photo_preview_file'); prev.src=p.photo; prev.style.display='block'; }
+  populateParentSelects(id);
+  setTimeout(()=>{ document.getElementById('f_father').value=p.father||''; document.getElementById('f_mother').value=p.mother||''; },0);
+  document.getElementById('modalBg').classList.add('open');
+}
+function openEditModalFromTree(){
+  const p=find(treeCenter); if(!p) return;
+  openEditModal(p.id, {stopPropagation:()=>{}});
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+function handleBgClick(e){ if(e.target.id==='modalBg') closeModal(); }
+function saveRecord(){
+  const name=document.getElementById('f_name').value.trim();
+  const zoo=document.getElementById('f_zoo').value.trim();
+  if(!name||!zoo){ alert('名前と現在の飼育動物園は必須です'); return; }
+  const gender=document.querySelector('input[name="gender"]:checked').value;
+  const record={
+    id:editId||nextId++, name, gender,
+    birth:document.getElementById('f_birth').value,
+    birth_zoo:document.getElementById('f_birth_zoo').value.trim(),
+    zoo, photo:pendingPhotoData||'',
+    father:document.getElementById('f_father').value,
+    mother:document.getElementById('f_mother').value,
+    notes:document.getElementById('f_notes').value.trim(),
+  };
+  if(editId){ const i=db.findIndex(d=>d.id===editId); if(i!==-1) db[i]=record; }
+  else db.push(record);
+  try{ saveDb(); }
+  catch(err){
+    if(err.name==='QuotaExceededError'){ alert('ストレージの空き容量が不足しています。より小さいサイズの写真をお使いください。'); return; }
+    throw err;
+  }
+  closeModal(); renderTabs(); renderStats(); renderList();
+  if(currentMode==='tree'&&treeCenter) renderTree(treeCenter);
+}
+function deleteRecord(id,e){
+  e.stopPropagation();
+  const p=db.find(d=>d.id===id);
+  if(!p||!confirm(`「${p.name}」を削除しますか？`)) return;
+  db=db.filter(d=>d.id!==id);
+  saveDb(); renderTabs(); renderStats(); renderList();
+  if(currentMode==='tree'&&treeCenter){ if(treeCenter===p.name){ document.getElementById('treeSvgWrap').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">個体が削除されました</div>'; treeCenter=null; document.getElementById('treeCenterInfo').style.display='none'; } else renderTree(treeCenter); }
+}
+
+// Init
+renderTabs(); renderStats(); renderList();
+</script>
+</body>
+</html>
