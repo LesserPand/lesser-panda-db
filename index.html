@@ -19,19 +19,31 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Zen Maru Gothic',sans-serif;background:var(--cream);color:var(--charcoal);min-height:100vh;padding-bottom:90px;}
 
+  /* ── Loading overlay ── */
+  #loadingOverlay{position:fixed;inset:0;background:var(--cream);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  #loadingOverlay.hidden{display:none;}
+  .spinner{width:40px;height:40px;border:4px solid var(--rust-light);border-top-color:var(--rust);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:14px;color:var(--muted);}
+
+  /* ── Toast ── */
+  #toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--bark);color:white;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:400;white-space:nowrap;}
+  #toast.show{opacity:1;}
+
   /* ── Header ── */
   .header{background:var(--rust);padding:16px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(92,61,30,0.2);}
   .header-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
   .header-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
   .header h1{font-size:18px;font-weight:700;color:white;line-height:1.2;}
   .header p{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+  .sync-badge{font-size:10px;padding:2px 8px;border-radius:50px;font-weight:700;margin-left:6px;}
+  .sync-badge.ok{background:rgba(255,255,255,0.25);color:white;}
+  .sync-badge.err{background:#F5C842;color:#5C3A00;}
   .search-bar{position:relative;margin-bottom:12px;}
   .search-bar input{width:100%;padding:10px 40px 10px 14px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);border-radius:50px;font-family:inherit;font-size:14px;color:white;outline:none;}
   .search-bar input::placeholder{color:rgba(255,255,255,0.6);}
   .search-bar input:focus{background:rgba(255,255,255,0.25);}
   .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:rgba(255,255,255,0.7);pointer-events:none;}
-
-  /* ── Mode tabs ── */
   .mode-tabs{display:flex;border-top:1px solid rgba(255,255,255,0.2);}
   .mode-tab{flex:1;padding:10px 4px;font-family:inherit;font-size:13px;font-weight:700;border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.15s;}
   .mode-tab.active{color:white;border-bottom-color:white;}
@@ -43,7 +55,6 @@
   .filter-tabs::-webkit-scrollbar{display:none;}
   .tab{flex-shrink:0;padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);font-family:inherit;font-size:13px;cursor:pointer;background:white;color:var(--bark-light);white-space:nowrap;transition:all 0.15s;}
   .tab.active{background:var(--rust);border-color:var(--rust);color:white;font-weight:500;}
-
   .stats-bar{display:flex;background:white;border-bottom:1px solid var(--border);}
   .stat{flex:1;text-align:center;padding:10px 4px;border-right:1px solid var(--border);}
   .stat:last-child{border-right:none;}
@@ -56,7 +67,6 @@
   .section-title{font-size:14px;font-weight:700;color:var(--bark);}
   .count-badge{font-size:12px;background:var(--rust-light);color:var(--rust-dark);padding:3px 10px;border-radius:50px;font-weight:500;}
   .tree-hint{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--rust-dark);background:var(--rust-light);padding:3px 10px;border-radius:50px;margin-bottom:12px;}
-
   .panda-list{display:flex;flex-direction:column;gap:10px;}
   .panda-card{background:white;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform 0.15s;box-shadow:var(--shadow);}
   .panda-card:active{transform:scale(0.98);}
@@ -109,9 +119,7 @@
   /* ── Tree mode ── */
   #treeMode{display:none;padding:12px 16px;}
   #treeMode.active{display:block;}
-  #listMode{display:block;}
   #listMode.hidden{display:none;}
-
   .tree-search-bar{position:relative;margin-bottom:12px;}
   .tree-search-bar input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;color:var(--charcoal);outline:none;background:white;}
   .tree-search-bar input:focus{border-color:var(--rust);}
@@ -120,20 +128,15 @@
   .tree-search-item{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);}
   .tree-search-item:last-child{border-bottom:none;}
   .tree-search-item:hover{background:var(--rust-light);}
-  .tree-search-item strong{color:var(--rust);}
-
   .tree-center-info{background:white;border:1.5px solid var(--rust-mid);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
   .tree-center-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;flex-shrink:0;}
   .tree-center-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
   .tree-center-name{font-size:18px;font-weight:700;color:var(--charcoal);}
   .tree-center-sub{font-size:12px;color:var(--muted);margin-top:3px;}
-
   .tree-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
   .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
   .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
-
   .tree-svg-wrap{background:white;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
-  .tree-svg-wrap svg{display:block;width:100%;}
 
   /* ── Modal / Form ── */
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center;}
@@ -153,7 +156,6 @@
   .photo-upload-area input{display:none;}
   .photo-preview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);margin-top:10px;display:none;}
   .copyright-notice{display:flex;align-items:flex-start;gap:8px;background:#FFFBEB;border:1.5px solid #F5C842;border-radius:var(--radius-sm);padding:10px 12px;margin-top:10px;}
-  .copyright-notice-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
   .copyright-notice-text{font-size:12px;color:#7A5C00;line-height:1.6;}
   .gender-select{display:flex;gap:8px;}
   .gender-opt{flex:1;}
@@ -164,18 +166,52 @@
   .form-row .form-group{flex:1;}
   .btn-primary{width:100%;padding:14px;background:var(--rust);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:background 0.15s;}
   .btn-primary:active{background:var(--rust-dark);}
+  .btn-primary:disabled{background:var(--muted);cursor:not-allowed;}
   .fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;background:var(--rust);border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:26px;color:white;cursor:pointer;box-shadow:0 4px 16px rgba(200,92,42,0.4);transition:transform 0.15s;z-index:150;}
   .fab:active{transform:scale(0.93);}
+
+  /* ── Deceased ── */
+  .panda-card.deceased{ opacity:0.55; }
+  .panda-card.deceased .card-name{ text-decoration: line-through; text-decoration-color: var(--muted); }
+  .tag-deceased{ background:#EEEAE6; color:#6B5C50; }
+  .deceased-toggle{ display:flex; align-items:center; gap:8px; padding:10px 16px; background:white; border-bottom:1px solid var(--border); font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }
+  .deceased-toggle input{ width:16px; height:16px; accent-color:var(--rust); cursor:pointer; }
+
+  /* ── Death field in form ── */
+  .death-section{ background:#F7F3F0; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:14px; }
+  .death-section-title{ font-size:12px; font-weight:700; color:var(--muted); margin-bottom:10px; }
+  .death-checkbox-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .death-checkbox-row input[type=checkbox]{ width:18px; height:18px; accent-color:var(--rust); cursor:pointer; flex-shrink:0; }
+  .death-checkbox-row label{ font-size:14px; font-weight:500; color:var(--bark); cursor:pointer; }
+  #deathDateWrap{ display:none; }
+  #deathDateWrap.show{ display:block; }
+
+  /* ── Delete password modal ── */
+  #pwModalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:center;justify-content:center;padding:20px;}
+  #pwModalBg.open{display:flex;}
+  .pw-modal{background:white;border-radius:var(--radius);padding:24px;width:100%;max-width:340px;}
+  .pw-modal h3{font-size:16px;font-weight:700;color:var(--bark);margin-bottom:8px;}
+  .pw-modal p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;}
+  .pw-error{font-size:12px;color:#c55;margin-top:6px;display:none;}
 </style>
 </head>
 <body>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">データを読み込んでいます…</div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
 
 <!-- Header -->
 <div class="header">
   <div class="header-top">
     <div class="header-icon">🦝</div>
-    <div>
-      <h1>レッサーパンダ家系図DB</h1>
+    <div style="flex:1">
+      <h1>レッサーパンダ家系図DB <span class="sync-badge ok" id="syncBadge">● クラウド同期中</span></h1>
       <p>全国の動物園のレッサーパンダ記録</p>
     </div>
   </div>
@@ -189,13 +225,17 @@
   </div>
 </div>
 
-<!-- Filter / Stats (list only) -->
+<!-- Filter / Stats -->
 <div id="filterWrap">
   <div class="filter-section">
     <div class="filter-label">現在の飼育動物園でしぼる</div>
     <div class="filter-tabs" id="filterTabs"></div>
   </div>
   <div class="stats-bar" id="statsBar"></div>
+  <label class="deceased-toggle">
+    <input type="checkbox" id="showDeceased" onchange="renderList()">
+    死亡個体も表示する（グレーアウト表示）
+  </label>
 </div>
 
 <!-- LIST MODE -->
@@ -231,15 +271,13 @@
     <div class="legend-item"><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#aaa" stroke-width="1.2" stroke-dasharray="4 3"/></svg>兄弟姉妹</div>
   </div>
   <div class="tree-svg-wrap" id="treeSvgWrap">
-    <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;">
-      上の検索欄から個体を選んでください
-    </div>
+    <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;">上の検索欄から個体を選んでください</div>
   </div>
 </div>
 
 <button class="fab" onclick="openAddModal()">＋</button>
 
-<!-- Modal -->
+<!-- Add/Edit Modal -->
 <div class="modal-bg" id="modalBg" onclick="handleBgClick(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -254,9 +292,8 @@
       </div>
       <img id="photo_preview_file" class="photo-preview" alt="プレビュー">
       <div class="copyright-notice">
-        <span class="copyright-notice-icon">⚠️</span>
         <div class="copyright-notice-text">
-          <strong>著作権についてのお願い</strong><br>
+          ⚠️ <strong>著作権についてのお願い</strong><br>
           アップロードできる写真は、<strong>ご自身で撮影した写真</strong>または<strong>権利フリー（CC0等）の画像</strong>に限ります。動物園の公式サイト・SNS・書籍などから取得した画像は著作権者の許可なく使用できません。
         </div>
       </div>
@@ -300,54 +337,150 @@
       <label class="form-label">メモ</label>
       <input class="form-input" id="f_notes" placeholder="特徴など自由記入">
     </div>
-    <div class="form-hint warn">⚠️ 写真データはブラウザに保存されます。ストレージ上限（約5MB）に注意してください。</div>
-    <button class="btn-primary" onclick="saveRecord()">登録する</button>
+
+    <div class="death-section">
+      <div class="death-section-title">🕯️ 死亡情報</div>
+      <div class="death-checkbox-row">
+        <input type="checkbox" id="f_is_dead" onchange="toggleDeathDate()">
+        <label for="f_is_dead">この個体は死亡しています</label>
+      </div>
+      <div id="deathDateWrap">
+        <label class="form-label">死亡日</label>
+        <input class="form-input" id="f_death_date" type="date">
+        <div class="form-hint">日付が不明な場合は空欄のままでも構いません</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="saveBtn" onclick="saveRecord()">登録する</button>
+  </div>
+</div>
+
+<!-- Delete password modal -->
+<div id="pwModalBg">
+  <div class="pw-modal">
+    <h3>🗑️ 削除の確認</h3>
+    <p id="pwModalMsg">削除するには管理パスワードを入力してください。</p>
+    <input class="form-input" type="password" id="pwInput" placeholder="パスワード" style="margin-bottom:4px">
+    <div class="pw-error" id="pwError">パスワードが違います</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="closePwModal()" style="flex:1;padding:12px;background:white;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer">キャンセル</button>
+      <button onclick="confirmDelete()" style="flex:1;padding:12px;background:#c55;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;color:white;cursor:pointer">削除する</button>
+    </div>
   </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════
-   DATA
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════ */
+const SUPABASE_URL = 'https://juwvubthmwbmidspjsxb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JUXZ2hwDb08v0Kgzb7FPWg_EuJqIacv';
+const DELETE_PASSWORD = 'Hideyoshi03';
+
+/* ═══════════════════════════════════════
+   SUPABASE API HELPERS
+═══════════════════════════════════════ */
+async function sbFetch(path, options={}){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...options.headers,
+    },
+  });
+  if(!res.ok){
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function loadAll(){
+  return await sbFetch('pandas?select=*&order=id.asc');
+}
+async function insertRecord(record){
+  const {id, ...data} = record;
+  return await sbFetch('pandas', {
+    method:'POST',
+    prefer:'return=representation',
+    headers:{'Prefer':'return=representation'},
+    body: JSON.stringify(data),
+  });
+}
+async function updateRecord(id, record){
+  const {id:_id, created_at, ...data} = record;
+  return await sbFetch(`pandas?id=eq.${id}`, {
+    method:'PATCH',
+    prefer:'return=representation',
+    headers:{'Prefer':'return=representation'},
+    body: JSON.stringify(data),
+  });
+}
+async function deleteRecord_sb(id){
+  return await sbFetch(`pandas?id=eq.${id}`, { method:'DELETE' });
+}
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
 const GENDER_LABEL = {male:'♂', female:'♀'};
 let pendingPhotoData = null;
-
-let db = JSON.parse(localStorage.getItem('panda_db_v2') || 'null');
-if (!db) {
-  const old = localStorage.getItem('panda_db');
-  if (old) {
-    db = JSON.parse(old).map(p=>({...p, birth_zoo:p.birth_zoo||p.zoo, photo:p.photo||''}));
-  } else {
-    db = [
-      {id:1, name:'コユキ', gender:'female', birth:'2018-05-12', birth_zoo:'上野動物園', zoo:'上野動物園', father:'キリ', mother:'ハナ', notes:'白い顔が特徴的な人気者', photo:''},
-      {id:2, name:'キリ', gender:'male', birth:'2013-03-08', birth_zoo:'多摩動物公園', zoo:'上野動物園', father:'ミツル', mother:'サクラ', notes:'コユキ・コハルの父', photo:''},
-      {id:3, name:'ハナ', gender:'female', birth:'2015-07-22', birth_zoo:'神戸市立王子動物園', zoo:'上野動物園', father:'', mother:'', notes:'コユキ・コハルの母', photo:''},
-      {id:4, name:'ミツル', gender:'male', birth:'2005-04-10', birth_zoo:'上野動物園', zoo:'上野動物園', father:'', mother:'', notes:'キリの父（祖父世代）', photo:''},
-      {id:5, name:'サクラ', gender:'female', birth:'2007-06-20', birth_zoo:'上野動物園', zoo:'上野動物園', father:'', mother:'', notes:'キリの母（祖父世代）', photo:''},
-      {id:6, name:'モミジ', gender:'male', birth:'2020-06-03', birth_zoo:'多摩動物公園', zoo:'多摩動物公園', father:'', mother:'', notes:'活発な性格', photo:''},
-      {id:7, name:'ユキ', gender:'female', birth:'2019-04-18', birth_zoo:'神戸市立王子動物園', zoo:'神戸市立王子動物園', father:'', mother:'', notes:'', photo:''},
-      {id:8, name:'コハル', gender:'female', birth:'2021-05-30', birth_zoo:'上野動物園', zoo:'上野動物園', father:'キリ', mother:'ハナ', notes:'コユキの妹', photo:''},
-      {id:9, name:'テン', gender:'male', birth:'2016-06-11', birth_zoo:'仙台市八木山動物公園', zoo:'仙台市八木山動物公園', father:'', mother:'', notes:'木登りが得意', photo:''},
-      {id:10, name:'アカリ', gender:'female', birth:'2022-07-07', birth_zoo:'多摩動物公園', zoo:'多摩動物公園', father:'モミジ', mother:'', notes:'', photo:''},
-      {id:11, name:'フク', gender:'male', birth:'2014-05-01', birth_zoo:'福岡市動物園', zoo:'福岡市動物園', father:'', mother:'', notes:'おっとりした性格', photo:''},
-      {id:12, name:'ソラ', gender:'male', birth:'2023-06-15', birth_zoo:'神戸市立王子動物園', zoo:'神戸市立王子動物園', father:'', mother:'ユキ', notes:'2023年生まれ', photo:''},
-      {id:13, name:'ナギ', gender:'female', birth:'2020-04-10', birth_zoo:'多摩動物公園', zoo:'仙台市八木山動物公園', father:'', mother:'', notes:'多摩から仙台へ転園', photo:''},
-    ];
-  }
-  saveDb();
-}
-let nextId = Math.max(...db.map(d=>d.id))+1;
+let db = [];
 let activeZoo = 'all';
 let editId = null;
 let currentMode = 'list';
 let treeCenter = null;
+let deleteTargetId = null;
 
-function saveDb(){ localStorage.setItem('panda_db_v2', JSON.stringify(db)); }
-function calcAge(birth){
+/* ═══════════════════════════════════════
+   TOAST / UI HELPERS
+═══════════════════════════════════════ */
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), 2500);
+}
+function setSyncBadge(ok){
+  const b=document.getElementById('syncBadge');
+  b.className='sync-badge '+(ok?'ok':'err');
+  b.textContent=ok?'● クラウド同期中':'⚠ オフライン';
+}
+function setLoading(show){
+  document.getElementById('loadingOverlay').classList.toggle('hidden',!show);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+async function init(){
+  setLoading(true);
+  try{
+    db = await loadAll();
+    setSyncBadge(true);
+  } catch(e){
+    setSyncBadge(false);
+    showToast('⚠ データ読み込みに失敗しました');
+    db = [];
+  }
+  setLoading(false);
+  renderTabs(); renderStats(); renderList();
+}
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function isDeceased(p){ return !!(p.death_date || p.is_dead); }
+function calcAge(birth, deathDate=null){
   if(!birth) return '不明';
-  const b=new Date(birth), now=new Date();
-  let y=now.getFullYear()-b.getFullYear();
-  if(now.getMonth()-b.getMonth()<0||(now.getMonth()===b.getMonth()&&now.getDate()<b.getDate()))y--;
+  const b=new Date(birth), end=deathDate?new Date(deathDate):new Date();
+  let y=end.getFullYear()-b.getFullYear();
+  if(end.getMonth()-b.getMonth()<0||(end.getMonth()===b.getMonth()&&end.getDate()<b.getDate()))y--;
   return y+'歳';
 }
 function isTransferred(p){ return p.birth_zoo&&p.zoo&&p.birth_zoo!==p.zoo; }
@@ -355,45 +488,45 @@ function getZoos(){ return ['all',...new Set(db.map(d=>d.zoo).filter(Boolean))];
 function getChildren(name){ return db.filter(d=>d.father===name||d.mother===name); }
 function find(name){ return db.find(d=>d.name===name); }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════
    MODE SWITCH
-═══════════════════════════════════════════ */
+═══════════════════════════════════════ */
 function switchMode(mode){
-  currentMode = mode;
-  document.getElementById('tabList').classList.toggle('active', mode==='list');
-  document.getElementById('tabTree').classList.toggle('active', mode==='tree');
-  document.getElementById('filterWrap').style.display = mode==='list'?'':'none';
-  document.getElementById('listSearchWrap').style.display = mode==='list'?'':'none';
-  document.getElementById('listMode').classList.toggle('hidden', mode!=='list');
-  document.getElementById('treeMode').classList.toggle('active', mode==='tree');
-  if(mode==='tree' && treeCenter) renderTree(treeCenter);
+  currentMode=mode;
+  document.getElementById('tabList').classList.toggle('active',mode==='list');
+  document.getElementById('tabTree').classList.toggle('active',mode==='tree');
+  document.getElementById('filterWrap').style.display=mode==='list'?'':'none';
+  document.getElementById('listSearchWrap').style.display=mode==='list'?'':'none';
+  document.getElementById('listMode').classList.toggle('hidden',mode!=='list');
+  document.getElementById('treeMode').classList.toggle('active',mode==='tree');
+  if(mode==='tree'&&treeCenter) renderTree(treeCenter);
 }
 
-/* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════
    LIST MODE
-═══════════════════════════════════════════ */
+═══════════════════════════════════════ */
 function renderTabs(){
-  const tabs = document.getElementById('filterTabs');
-  tabs.innerHTML = getZoos().map(z=>`
+  const tabs=document.getElementById('filterTabs');
+  tabs.innerHTML=getZoos().map(z=>`
     <button class="tab ${activeZoo===z?'active':''}" onclick="setZoo('${z.replace(/'/g,"\\'")}')">
       ${z==='all'?'🗾 すべて':'🌿 '+z}
     </button>`).join('');
 }
 function setZoo(zoo){ activeZoo=zoo; renderTabs(); renderList(); }
-
 function getFiltered(){
   const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const showDead=document.getElementById('showDeceased').checked;
   return db.filter(d=>{
     const ms=!q||d.name.toLowerCase().includes(q)||(d.zoo||'').toLowerCase().includes(q)||(d.birth_zoo||'').toLowerCase().includes(q);
     const mz=activeZoo==='all'||d.zoo===activeZoo;
-    return ms&&mz;
+    const md=showDead||!isDeceased(d);
+    return ms&&mz&&md;
   });
 }
 function renderStats(){
-  const bar=document.getElementById('statsBar');
   const total=db.length, males=db.filter(d=>d.gender==='male').length;
   const zoos=new Set(db.map(d=>d.zoo).filter(Boolean)).size;
-  bar.innerHTML=`
+  document.getElementById('statsBar').innerHTML=`
     <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">総頭数</div></div>
     <div class="stat"><div class="stat-num">${males}</div><div class="stat-label">♂ オス</div></div>
     <div class="stat"><div class="stat-num">${total-males}</div><div class="stat-label">♀ メス</div></div>
@@ -403,17 +536,14 @@ function renderList(){
   const list=document.getElementById('pandaList');
   const filtered=getFiltered();
   document.getElementById('countBadge').textContent=filtered.length+'頭';
-  if(!filtered.length){
-    list.innerHTML=`<div class="no-results"><div class="no-results-icon">🔍</div><div>該当する個体が見つかりませんでした</div></div>`;
-    return;
-  }
+  if(!filtered.length){ list.innerHTML=`<div class="no-results"><div class="no-results-icon">🔍</div><div>該当する個体が見つかりませんでした</div></div>`; return; }
   list.innerHTML=filtered.map(p=>{
-    const father=find(p.father), mother=find(p.mother);
-    const children=getChildren(p.name);
-    const transferred=isTransferred(p);
+    const father=find(p.father), mother=find(p.mother), children=getChildren(p.name);
+    const transferred=isTransferred(p), dead=isDeceased(p);
+    const age=calcAge(p.birth, p.death_date);
+    const ageLabel=dead?(p.death_date?`享年${age}`:`享年${age}（推定）`):age;
     const photoHtml=p.photo?`<img class="card-photo" src="${p.photo}" alt="${p.name}の写真" onerror="this.style.display='none'">`:'';
     const avatarInner=p.photo?`<img src="${p.photo}" alt="${p.name}" onerror="this.innerHTML='🦝'">`:'🦝';
-    const transferTag=transferred?`<span class="tag tag-transfer">🚌 ${p.birth_zoo}から転園</span>`:'';
     const fHtml=p.father
       ?`<div class="family-chip" onclick="jumpTo('${p.father}',event)"><div class="family-chip-role">👨 父</div><div class="family-chip-name">${p.father}</div><div class="family-chip-zoo">${father?father.zoo:''}</div></div>`
       :`<div class="family-chip unknown"><div class="family-chip-role">👨 父</div><div class="family-chip-name">不明</div></div>`;
@@ -428,54 +558,45 @@ function renderList(){
             <span style="font-size:20px">${c.gender==='female'?'🔴':'🔵'}</span>
             <div><div class="child-chip-name">${c.name}</div><div class="child-chip-info">${calcAge(c.birth)} ・ ${c.zoo}</div></div>
             <span style="margin-left:auto;color:var(--muted)">›</span>
-          </div>`).join('')}
-        </div>
-      </div>`:'';
-    const notesHtml=p.notes?`
-      <div class="detail-section">
-        <div class="detail-section-title">📝 メモ</div>
-        <div style="font-size:14px;color:var(--bark);background:white;border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--border)">${p.notes}</div>
-      </div>`:'';
-    const zooDetailHtml=transferred?`
-      <div class="detail-item wide"><div class="detail-item-label">🏡 生まれた動物園</div><div class="detail-item-value">${p.birth_zoo}</div></div>
-      <div class="detail-item wide"><div class="detail-item-label">🌿 現在の飼育動物園</div><div class="detail-item-value">${p.zoo} <span class="transfer-badge">転園</span></div></div>`
+          </div>`).join('')}</div></div>`:'';
+    const notesHtml=p.notes?`<div class="detail-section"><div class="detail-section-title">📝 メモ</div><div style="font-size:14px;color:var(--bark);background:white;border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--border)">${p.notes}</div></div>`:'';
+    const zooDetailHtml=transferred
+      ?`<div class="detail-item wide"><div class="detail-item-label">🏡 生まれた動物園</div><div class="detail-item-value">${p.birth_zoo}</div></div><div class="detail-item wide"><div class="detail-item-label">🌿 現在の飼育動物園</div><div class="detail-item-value">${p.zoo} <span class="transfer-badge">転園</span></div></div>`
       :`<div class="detail-item wide"><div class="detail-item-label">🌿 飼育動物園（出生地と同じ）</div><div class="detail-item-value">${p.zoo}</div></div>`;
     return `
-    <div class="panda-card" id="card-${p.id}" onclick="toggleCard(${p.id})">
+    <div class="panda-card${dead?' deceased':''}" id="card-${p.id}" onclick="toggleCard(${p.id})">
       ${photoHtml}
       <div class="card-main">
         <div class="avatar ${p.gender}">${avatarInner}<div class="gender-badge ${p.gender}">${GENDER_LABEL[p.gender]}</div></div>
         <div class="card-info">
           <div class="card-name">${p.name}</div>
-          <div class="card-age">${calcAge(p.birth)}${p.birth?' ・ '+p.birth.replace(/-/g,'/'):''}</div>
+          <div class="card-age">${ageLabel}${p.birth?' ・ '+p.birth.replace(/-/g,'/'):''}</div>
           <div class="card-tags">
+            ${dead?`<span class="tag tag-deceased">🕯️ 死亡${p.death_date?' '+p.death_date.replace(/-/g,'/'):''}` +'</span>':''}
             <span class="tag tag-zoo">🌿 ${p.zoo}</span>
             ${p.birth_zoo&&p.birth_zoo!==p.zoo?`<span class="tag tag-born">🏡 ${p.birth_zoo}生まれ</span>`:''}
-            ${transferTag}
+            ${transferred?`<span class="tag tag-transfer">🚌 転園</span>`:''}
           </div>
         </div>
         <span class="expand-arrow">⌄</span>
       </div>
       <div class="card-detail">
-        <div class="detail-section">
-          <div class="detail-section-title">🌳 両親</div>
-          <div class="family-row">${fHtml}${mHtml}</div>
-        </div>
+        <div class="detail-section"><div class="detail-section-title">🌳 両親</div><div class="family-row">${fHtml}${mHtml}</div></div>
         ${childrenHtml}
-        <div class="detail-section">
-          <div class="detail-section-title">📋 基本情報</div>
+        <div class="detail-section"><div class="detail-section-title">📋 基本情報</div>
           <div class="detail-grid">
             <div class="detail-item"><div class="detail-item-label">名前</div><div class="detail-item-value">${p.name}</div></div>
-            <div class="detail-item"><div class="detail-item-label">年齢</div><div class="detail-item-value">${calcAge(p.birth)}</div></div>
+            <div class="detail-item"><div class="detail-item-label">${dead?'享年':'年齢'}</div><div class="detail-item-value">${ageLabel}</div></div>
             <div class="detail-item"><div class="detail-item-label">性別</div><div class="detail-item-value">${p.gender==='male'?'♂ オス':'♀ メス'}</div></div>
             <div class="detail-item"><div class="detail-item-label">誕生日</div><div class="detail-item-value" style="font-size:12px">${p.birth?p.birth.replace(/-/g,'/'):'不明'}</div></div>
+            ${dead?`<div class="detail-item wide"><div class="detail-item-label">🕯️ 死亡日</div><div class="detail-item-value">${p.death_date?p.death_date.replace(/-/g,'/'):'不明'}</div></div>`:''}
             ${zooDetailHtml}
           </div>
         </div>
         ${notesHtml}
         <div style="display:flex;gap:8px;margin-top:4px">
           <button onclick="openEditModal(${p.id},event)" style="flex:1;padding:10px;background:var(--rust-light);border:1.5px solid var(--rust-mid);border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:var(--rust-dark);cursor:pointer">✏️ 編集</button>
-          <button onclick="deleteRecord(${p.id},event)" style="flex:1;padding:10px;background:white;border:1.5px solid #ecc;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:#c55;cursor:pointer">🗑️ 削除</button>
+          <button onclick="askDelete(${p.id},event)" style="flex:1;padding:10px;background:white;border:1.5px solid #ecc;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:#c55;cursor:pointer">🗑️ 削除</button>
         </div>
         <div style="margin-top:8px">
           <button onclick="openTreeFromList(${p.id},event)" style="width:100%;padding:10px;background:var(--leaf-light);border:1.5px solid var(--leaf);border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:var(--leaf);cursor:pointer">🌳 家系図で見る</button>
@@ -499,245 +620,119 @@ function openTreeFromList(id,e){
   switchMode('tree'); setTreeCenter(p.name);
 }
 
-/* ═══════════════════════════════════════════
-   TREE MODE — search
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   TREE MODE
+═══════════════════════════════════════ */
 function treeSearchInput(){
   const q=document.getElementById('treeSearch').value.trim().toLowerCase();
   const res=document.getElementById('treeSearchResults');
   if(!q){ res.classList.remove('open'); res.innerHTML=''; return; }
   const matches=db.filter(d=>d.name.toLowerCase().includes(q)||(d.zoo||'').toLowerCase().includes(q));
   if(!matches.length){ res.innerHTML='<div class="tree-search-item" style="color:var(--muted)">見つかりませんでした</div>'; res.classList.add('open'); return; }
-  res.innerHTML=matches.slice(0,8).map(d=>`
-    <div class="tree-search-item" onclick="setTreeCenter('${d.name}')">
-      <strong>${d.name}</strong> <span style="color:var(--muted);font-size:12px">${GENDER_LABEL[d.gender]} ${calcAge(d.birth)} ${d.zoo}</span>
-    </div>`).join('');
+  res.innerHTML=matches.slice(0,8).map(d=>`<div class="tree-search-item" onclick="setTreeCenter('${d.name}')"><strong>${d.name}</strong> <span style="color:var(--muted);font-size:12px">${GENDER_LABEL[d.gender]} ${calcAge(d.birth)} ${d.zoo}</span></div>`).join('');
   res.classList.add('open');
 }
 function setTreeCenter(name){
   document.getElementById('treeSearch').value='';
   document.getElementById('treeSearchResults').classList.remove('open');
-  treeCenter=name;
-  renderTree(name);
-  // update header card
+  treeCenter=name; renderTree(name);
   const p=find(name); if(!p) return;
-  const info=document.getElementById('treeCenterInfo');
-  info.style.display='flex';
+  document.getElementById('treeCenterInfo').style.display='flex';
   document.getElementById('treeCenterName').textContent=p.name;
   document.getElementById('treeCenterSub').textContent=`${GENDER_LABEL[p.gender]} ${calcAge(p.birth)} ・ ${p.zoo}`;
   const av=document.getElementById('treeCenterAvatar');
   av.className=`tree-center-avatar ${p.gender}`;
   av.innerHTML=p.photo?`<img src="${p.photo}" alt="" onerror="this.innerHTML='🦝'">`:'🦝';
 }
-
-/* ═══════════════════════════════════════════
-   TREE MODE — render SVG
-═══════════════════════════════════════════ */
 function renderTree(centerName){
   const p=find(centerName); if(!p){ document.getElementById('treeSvgWrap').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">個体が見つかりません</div>'; return; }
-
-  // Collect nodes per generation
-  // Gen0=grandparents, Gen1=parents, Gen2=center+siblings, Gen3=children
-  const father=find(p.father);
-  const mother=find(p.mother);
-  const gfp=father?find(father.father):null; // paternal grandfather
-  const gmp=father?find(father.mother):null; // paternal grandmother
-  const gfm=mother?find(mother.father):null; // maternal grandfather
-  const gmm=mother?find(mother.mother):null; // maternal grandmother
+  const father=find(p.father), mother=find(p.mother);
+  const gfp=father?find(father.father):null, gmp=father?find(father.mother):null;
+  const gfm=mother?find(mother.father):null, gmm=mother?find(mother.mother):null;
   const siblings=db.filter(d=>d.name!==p.name&&((p.father&&d.father===p.father)||(p.mother&&d.mother===p.mother)));
   const children=getChildren(p.name);
-
-  // Layout constants
   const W=380, NH=52, LMARGIN=8;
-  const rowY=[50, 140, 235, 330];
+  const rowY=[50,140,235,330];
   const halfH=NH/2;
-
-  // Compute safe node width so all nodes fit within W
-  function safeNW(count){
-    if(count<=2) return 100;
-    if(count===3) return 88;
-    return Math.floor((W - LMARGIN*2 - (count-1)*8) / count);
+  function safeNW(count){ if(count<=2)return 100; if(count===3)return 88; return Math.floor((W-LMARGIN*2-(count-1)*8)/count); }
+  function placeRow(nodes,yCenter){
+    const nw=safeNW(nodes.length), gap=nodes.length<=2?12:8;
+    const total=nodes.length*(nw+gap)-gap, startX=Math.max(LMARGIN,(W-total)/2);
+    return nodes.map((n,i)=>({node:n,nw,x:startX+i*(nw+gap),y:yCenter-halfH,cx:startX+i*(nw+gap)+nw/2,cy:yCenter}));
   }
-
-  // Helper: place nodes evenly in a row
-  function placeRow(nodes, yCenter){
-    const nw=safeNW(nodes.length);
-    const gap=nodes.length<=2?12:8;
-    const total=nodes.length*(nw+gap)-gap;
-    const startX=Math.max(LMARGIN, (W-total)/2);
-    return nodes.map((n,i)=>({node:n, nw, x:startX+i*(nw+gap), y:yCenter-halfH, cx:startX+i*(nw+gap)+nw/2, cy:yCenter}));
-  }
-
-  // Grandparents row — up to 4, left=paternal, right=maternal
   const gps=[gfp,gmp,gfm,gmm].filter(Boolean);
-  const gpRow=placeRow(gps, rowY[0]);
-  // Map grandparent name→position
-  const gpMap={}; gpRow.forEach(r=>{ if(r.node) gpMap[r.node.name]=r; });
-
-  // Parents row
+  const gpRow=placeRow(gps,rowY[0]), gpMap={};
+  gpRow.forEach(r=>{if(r.node)gpMap[r.node.name]=r;});
   const parents=[father,mother].filter(Boolean);
-  const parRow=placeRow(parents, rowY[1]);
-  const parMap={}; parRow.forEach(r=>{ if(r.node) parMap[r.node.name]=r; });
-
-  // Center + siblings row (center first, then siblings, max 4 siblings shown)
-  const MAX_SIB=3;
-  const sibShown=siblings.slice(0,MAX_SIB);
-  const sibExtra=siblings.length-MAX_SIB;
-  const gen2nodes=[p,...sibShown];
-  const gen2row=placeRow(gen2nodes, rowY[2]);
-  const centerPos=gen2row[0];
-
-  // Children row (max 4)
-  const MAX_CHILD=4;
-  const childShown=children.slice(0,MAX_CHILD);
-  const childExtra=children.length-MAX_CHILD;
-  const childRow=placeRow(childShown, rowY[3]);
-
-  // SVG height
+  const parRow=placeRow(parents,rowY[1]), parMap={};
+  parRow.forEach(r=>{if(r.node)parMap[r.node.name]=r;});
+  const MAX_SIB=3, sibShown=siblings.slice(0,MAX_SIB), sibExtra=siblings.length-MAX_SIB;
+  const gen2nodes=[p,...sibShown], gen2row=placeRow(gen2nodes,rowY[2]), centerPos=gen2row[0];
+  const MAX_CHILD=4, childShown=children.slice(0,MAX_CHILD), childExtra=children.length-MAX_CHILD;
+  const childRow=placeRow(childShown,rowY[3]);
   const svgH=children.length>0?390:310;
-
-  // Node drawing helper
-  function nodeRect(pos, isCenter=false, isDim=false){
-    const n=pos.node;
-    const nw=pos.nw||100;
-    const isMale=n.gender==='male';
-    const fill=isMale?'#D9EAF5':'#FAE0EC';
-    const stroke=isCenter?'#C85C2A':isMale?'#3A7EAF':'#C0537A';
-    const sw=isCenter?'2':'1';
+  function nodeRect(pos,isCenter=false,isDim=false){
+    const n=pos.node, nw=pos.nw||100, isMale=n.gender==='male';
+    const fill=isMale?'#D9EAF5':'#FAE0EC', stroke=isCenter?'#C85C2A':isMale?'#3A7EAF':'#C0537A';
     const opacity=isDim?'opacity="0.65"':'';
-    const nameColor=isMale?'#0C447C':'#72243E';
-    const subColor=isMale?'#185FA5':'#993556';
+    const nc=isMale?'#0C447C':'#72243E', sc=isMale?'#185FA5':'#993556';
     const shortName=n.name.length>5?n.name.slice(0,5)+'…':n.name;
-    const ageStr=calcAge(n.birth);
-    return `
-      <g class="tree-node" onclick="setTreeCenter('${n.name}')" style="cursor:pointer" ${opacity}>
-        <rect x="${pos.x}" y="${pos.y}" width="${nw}" height="${NH}" rx="10"
-          fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-        <text x="${pos.cx}" y="${pos.y+20}" text-anchor="middle" dominant-baseline="central"
-          font-size="13" font-weight="500" fill="${nameColor}" font-family="'Zen Maru Gothic',sans-serif">${shortName}</text>
-        <text x="${pos.cx}" y="${pos.y+37}" text-anchor="middle" dominant-baseline="central"
-          font-size="10" fill="${subColor}" font-family="'Zen Maru Gothic',sans-serif">${GENDER_LABEL[n.gender]} ${ageStr}</text>
-      </g>`;
+    const dead=isDeceased(n);
+    const ageStr=dead?`享年${calcAge(n.birth,n.death_date)}`:calcAge(n.birth);
+    const opacityAttr=(isDim||dead)?`opacity="${isDim?0.55:0.6}"`:'';
+    return `<g onclick="setTreeCenter('${n.name}')" style="cursor:pointer" ${opacityAttr}>
+      <rect x="${pos.x}" y="${pos.y}" width="${nw}" height="${NH}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isCenter?2:1}"/>
+      ${dead?`<line x1="${pos.x+6}" y1="${pos.y+6}" x2="${pos.x+nw-6}" y2="${pos.y+NH-6}" stroke="${stroke}" stroke-width="1" opacity="0.4"/>`:''}
+      <text x="${pos.cx}" y="${pos.y+20}" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="${nc}" font-family="'Zen Maru Gothic',sans-serif">${shortName}</text>
+      <text x="${pos.cx}" y="${pos.y+37}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="${sc}" font-family="'Zen Maru Gothic',sans-serif">${GENDER_LABEL[n.gender]} ${ageStr}</text>
+    </g>`;
   }
-
-  // Connector line helper
-  function line(x1,y1,x2,y2,dash=false){
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#C8A88A" stroke-width="1.5" ${dash?'stroke-dasharray="5 3"':''} fill="none"/>`;
-  }
+  function line(x1,y1,x2,y2,dash=false){ return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#C8A88A" stroke-width="1.5" ${dash?'stroke-dasharray="5 3"':''} fill="none"/>`; }
   function vline(x,y1,y2){ return line(x,y1,x,y2); }
   function hline(x1,x2,y){ return line(x1,y,x2,y); }
-
-  let svgParts=[];
-
-  // ── Gen0→Gen1 connectors ──
+  let s=[];
   parRow.forEach(pr=>{
     const pn=pr.node;
-    // paternal side
-    if(pn.name===father?.name){
-      if(gpMap[pn.father]){
-        const gp=gpMap[pn.father];
-        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+18));
-        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+18));
-        svgParts.push(vline(pr.cx, rowY[0]+halfH+18, rowY[1]-halfH));
+    [[pn.father,18],[pn.mother,30]].forEach(([parentName,offset])=>{
+      if(gpMap[parentName]){
+        const gp=gpMap[parentName];
+        s.push(vline(gp.cx,rowY[0]+halfH,rowY[0]+halfH+offset));
+        s.push(hline(gp.cx,pr.cx,rowY[0]+halfH+offset));
+        s.push(vline(pr.cx,rowY[0]+halfH+offset,rowY[1]-halfH));
       }
-      if(gpMap[pn.mother]){
-        const gp=gpMap[pn.mother];
-        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+18));
-        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+18));
-        svgParts.push(vline(pr.cx, rowY[0]+halfH+18, rowY[1]-halfH));
-      }
-    }
-    if(pn.name===mother?.name){
-      if(gpMap[pn.father]){
-        const gp=gpMap[pn.father];
-        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+30));
-        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+30));
-        svgParts.push(vline(pr.cx, rowY[0]+halfH+30, rowY[1]-halfH));
-      }
-      if(gpMap[pn.mother]){
-        const gp=gpMap[pn.mother];
-        svgParts.push(vline(gp.cx, rowY[0]+halfH, rowY[0]+halfH+30));
-        svgParts.push(hline(gp.cx, pr.cx, rowY[0]+halfH+30));
-        svgParts.push(vline(pr.cx, rowY[0]+halfH+30, rowY[1]-halfH));
-      }
-    }
+    });
   });
-
-  // ── Gen1→Gen2 (center) connector ──
   const midY=rowY[1]+halfH+Math.round((rowY[2]-halfH-(rowY[1]+halfH))/2);
   if(father&&mother&&parMap[father.name]&&parMap[mother.name]){
-    const fpos=parMap[father.name], mpos=parMap[mother.name];
-    svgParts.push(vline(fpos.cx, rowY[1]+halfH, midY));
-    svgParts.push(vline(mpos.cx, rowY[1]+halfH, midY));
-    svgParts.push(hline(fpos.cx, mpos.cx, midY));
-    svgParts.push(vline(centerPos.cx, midY, rowY[2]-halfH));
-  } else if(father&&parMap[father.name]){
-    svgParts.push(vline(parMap[father.name].cx, rowY[1]+halfH, rowY[2]-halfH));
-  } else if(mother&&parMap[mother.name]){
-    svgParts.push(vline(parMap[mother.name].cx, rowY[1]+halfH, rowY[2]-halfH));
-  }
-
-  // ── Siblings (dashed from same midpoint or parent) ──
+    const fp=parMap[father.name], mp=parMap[mother.name];
+    s.push(vline(fp.cx,rowY[1]+halfH,midY)); s.push(vline(mp.cx,rowY[1]+halfH,midY));
+    s.push(hline(fp.cx,mp.cx,midY)); s.push(vline(centerPos.cx,midY,rowY[2]-halfH));
+  } else if(father&&parMap[father.name]){ s.push(vline(parMap[father.name].cx,rowY[1]+halfH,rowY[2]-halfH)); }
+  else if(mother&&parMap[mother.name]){ s.push(vline(parMap[mother.name].cx,rowY[1]+halfH,rowY[2]-halfH)); }
   gen2row.slice(1).forEach(sr=>{
-    svgParts.push(hline(centerPos.cx, sr.cx, rowY[2]-halfH-10));
-    svgParts.push(vline(sr.cx, rowY[2]-halfH-10, rowY[2]-halfH));
-    // marker dashed
-    svgParts.push(`<line x1="${centerPos.cx}" y1="${rowY[2]-halfH-10}" x2="${sr.cx}" y2="${rowY[2]-halfH-10}" stroke="#C8A88A" stroke-width="1.2" stroke-dasharray="5 3" fill="none"/>`);
+    s.push(`<line x1="${centerPos.cx}" y1="${rowY[2]-halfH-10}" x2="${sr.cx}" y2="${rowY[2]-halfH-10}" stroke="#C8A88A" stroke-width="1.2" stroke-dasharray="5 3" fill="none"/>`);
+    s.push(vline(sr.cx,rowY[2]-halfH-10,rowY[2]-halfH));
   });
-
-  // ── Gen2→Gen3 connectors ──
   if(childRow.length>0){
-    svgParts.push(vline(centerPos.cx, rowY[2]+halfH, midY+Math.round((rowY[3]-halfH-(rowY[2]+halfH))/2)));
     const childMidY=rowY[2]+halfH+Math.round((rowY[3]-halfH-(rowY[2]+halfH))/2);
-    svgParts.push(vline(centerPos.cx, rowY[2]+halfH, childMidY));
-    const minCX=Math.min(...childRow.map(r=>r.cx));
-    const maxCX=Math.max(...childRow.map(r=>r.cx));
-    if(childRow.length>1) svgParts.push(hline(minCX, maxCX, childMidY));
-    childRow.forEach(cr=>{ svgParts.push(vline(cr.cx, childMidY, rowY[3]-halfH)); });
+    s.push(vline(centerPos.cx,rowY[2]+halfH,childMidY));
+    if(childRow.length>1) s.push(hline(Math.min(...childRow.map(r=>r.cx)),Math.max(...childRow.map(r=>r.cx)),childMidY));
+    childRow.forEach(cr=>s.push(vline(cr.cx,childMidY,rowY[3]-halfH)));
   }
-
-  // ── Draw nodes ──
-  // Grandparents (dimmed)
-  gpRow.forEach(r=>{ svgParts.push(nodeRect(r, false, true)); });
-  // Parents
-  parRow.forEach(r=>{ svgParts.push(nodeRect(r, false, false)); });
-  // Gen2: center (highlighted) + siblings (slightly dimmed)
-  gen2row.forEach((r,i)=>{ svgParts.push(nodeRect(r, i===0, i>0)); });
-  // Children
-  childRow.forEach(r=>{ svgParts.push(nodeRect(r)); });
-
-  // Gen labels (left margin)
-  const genLabels=[
-    gps.length?{y:rowY[0],label:'祖父母'}:null,
-    parents.length?{y:rowY[1],label:'親'}:null,
-    {y:rowY[2],label:'本人'},
-    children.length?{y:rowY[3],label:'子'}:null,
-  ].filter(Boolean);
-  genLabels.forEach(({y,label})=>{
-    svgParts.push(`<text x="14" y="${y}" text-anchor="start" dominant-baseline="central" font-size="10" fill="#8A7060" font-family="'Zen Maru Gothic',sans-serif">${label}</text>`);
-  });
-
-  // +N badges
-  if(sibExtra>0){
-    const last=gen2row[gen2row.length-1];
-    const bx=last.x+last.nw+8, by=last.y;
-    svgParts.push(`<rect x="${bx}" y="${by}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/>`);
-    svgParts.push(`<text x="${bx+17}" y="${by+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${sibExtra}</text>`);
-  }
-  if(childExtra>0){
-    const last=childRow[childRow.length-1];
-    const bx=last.x+last.nw+8, by=last.y;
-    svgParts.push(`<rect x="${bx}" y="${by}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/>`);
-    svgParts.push(`<text x="${bx+17}" y="${by+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${childExtra}</text>`);
-  }
-
-  const svg=`<svg width="100%" viewBox="0 0 ${W} ${svgH}" style="display:block;overflow:visible">${svgParts.join('')}</svg>`;
-  document.getElementById('treeSvgWrap').innerHTML=svg;
+  gpRow.forEach(r=>s.push(nodeRect(r,false,true)));
+  parRow.forEach(r=>s.push(nodeRect(r)));
+  gen2row.forEach((r,i)=>s.push(nodeRect(r,i===0,i>0)));
+  childRow.forEach(r=>s.push(nodeRect(r)));
+  [{y:rowY[0],label:'祖父母',show:gps.length},{y:rowY[1],label:'親',show:parents.length},{y:rowY[2],label:'本人',show:1},{y:rowY[3],label:'子',show:children.length}]
+    .filter(g=>g.show).forEach(({y,label})=>s.push(`<text x="14" y="${y}" text-anchor="start" dominant-baseline="central" font-size="10" fill="#8A7060" font-family="'Zen Maru Gothic',sans-serif">${label}</text>`));
+  if(sibExtra>0){ const l=gen2row[gen2row.length-1],bx=l.x+l.nw+8; s.push(`<rect x="${bx}" y="${l.y}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/><text x="${bx+17}" y="${l.y+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${sibExtra}</text>`); }
+  if(childExtra>0){ const l=childRow[childRow.length-1],bx=l.x+l.nw+8; s.push(`<rect x="${bx}" y="${l.y}" width="34" height="${NH}" rx="10" fill="#F5E8DE" stroke="#E8A07A" stroke-width="1"/><text x="${bx+17}" y="${l.y+26}" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#8B3A18" font-family="'Zen Maru Gothic',sans-serif">+${childExtra}</text>`); }
+  document.getElementById('treeSvgWrap').innerHTML=`<svg width="100%" viewBox="0 0 ${W} ${svgH}" style="display:block;overflow:visible">${s.join('')}</svg>`;
 }
 
-/* ═══════════════════════════════════════════
-   FORM / MODAL
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   FORM
+═══════════════════════════════════════ */
 function handleFileSelect(e){
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
@@ -750,16 +745,19 @@ function populateParentSelects(excludeId=null){
   document.getElementById('f_father').innerHTML='<option value="">-- 不明 --</option>'+males.map(d=>`<option value="${d.name}">${d.name}（${d.zoo}）</option>`).join('');
   document.getElementById('f_mother').innerHTML='<option value="">-- 不明 --</option>'+females.map(d=>`<option value="${d.name}">${d.name}（${d.zoo}）</option>`).join('');
 }
-function resetPhotoForm(){
-  pendingPhotoData=null;
-  document.getElementById('f_photo_file').value='';
-  document.getElementById('photo_preview_file').style.display='none';
+function toggleDeathDate(){
+  const checked=document.getElementById('f_is_dead').checked;
+  document.getElementById('deathDateWrap').classList.toggle('show', checked);
 }
+function resetPhotoForm(){ pendingPhotoData=null; document.getElementById('f_photo_file').value=''; document.getElementById('photo_preview_file').style.display='none'; }
 function openAddModal(){
   editId=null;
   document.getElementById('formTitle').textContent='🦝 新しい個体を登録';
   ['f_name','f_birth','f_birth_zoo','f_zoo','f_notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('g_male').checked=true;
+  document.getElementById('f_is_dead').checked=false;
+  document.getElementById('f_death_date').value='';
+  document.getElementById('deathDateWrap').classList.remove('show');
   resetPhotoForm(); populateParentSelects();
   document.getElementById('modalBg').classList.add('open');
 }
@@ -773,53 +771,94 @@ function openEditModal(id,e){
   document.getElementById('f_zoo').value=p.zoo||'';
   document.getElementById('f_notes').value=p.notes||'';
   document.getElementById(p.gender==='female'?'g_female':'g_male').checked=true;
+  const dead=isDeceased(p);
+  document.getElementById('f_is_dead').checked=dead;
+  document.getElementById('f_death_date').value=p.death_date||'';
+  document.getElementById('deathDateWrap').classList.toggle('show', dead);
   resetPhotoForm();
   if(p.photo){ pendingPhotoData=p.photo; const prev=document.getElementById('photo_preview_file'); prev.src=p.photo; prev.style.display='block'; }
   populateParentSelects(id);
   setTimeout(()=>{ document.getElementById('f_father').value=p.father||''; document.getElementById('f_mother').value=p.mother||''; },0);
   document.getElementById('modalBg').classList.add('open');
 }
-function openEditModalFromTree(){
-  const p=find(treeCenter); if(!p) return;
-  openEditModal(p.id, {stopPropagation:()=>{}});
-}
+function openEditModalFromTree(){ const p=find(treeCenter); if(!p) return; openEditModal(p.id,{stopPropagation:()=>{}}); }
 function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
 function handleBgClick(e){ if(e.target.id==='modalBg') closeModal(); }
-function saveRecord(){
+
+async function saveRecord(){
   const name=document.getElementById('f_name').value.trim();
   const zoo=document.getElementById('f_zoo').value.trim();
   if(!name||!zoo){ alert('名前と現在の飼育動物園は必須です'); return; }
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true; btn.textContent='保存中…';
   const gender=document.querySelector('input[name="gender"]:checked').value;
+  const isDead=document.getElementById('f_is_dead').checked;
+  const deathDate=document.getElementById('f_death_date').value;
   const record={
-    id:editId||nextId++, name, gender,
-    birth:document.getElementById('f_birth').value,
-    birth_zoo:document.getElementById('f_birth_zoo').value.trim(),
-    zoo, photo:pendingPhotoData||'',
-    father:document.getElementById('f_father').value,
-    mother:document.getElementById('f_mother').value,
-    notes:document.getElementById('f_notes').value.trim(),
+    name, gender,
+    birth:document.getElementById('f_birth').value||null,
+    birth_zoo:document.getElementById('f_birth_zoo').value.trim()||null,
+    zoo, photo:pendingPhotoData||null,
+    father:document.getElementById('f_father').value||null,
+    mother:document.getElementById('f_mother').value||null,
+    notes:document.getElementById('f_notes').value.trim()||null,
+    death_date: isDead&&deathDate ? deathDate : null,
+    is_dead: isDead || null,
   };
-  if(editId){ const i=db.findIndex(d=>d.id===editId); if(i!==-1) db[i]=record; }
-  else db.push(record);
-  try{ saveDb(); }
-  catch(err){
-    if(err.name==='QuotaExceededError'){ alert('ストレージの空き容量が不足しています。より小さいサイズの写真をお使いください。'); return; }
-    throw err;
+  try{
+    if(editId){
+      const res=await updateRecord(editId, record);
+      const updated=Array.isArray(res)?res[0]:res;
+      const i=db.findIndex(d=>d.id===editId);
+      if(i!==-1) db[i]={...db[i],...updated};
+      showToast('✅ 更新しました');
+    } else {
+      const res=await insertRecord(record);
+      const inserted=Array.isArray(res)?res[0]:res;
+      db.push(inserted);
+      showToast('✅ 登録しました');
+    }
+    closeModal(); renderTabs(); renderStats(); renderList();
+    if(currentMode==='tree'&&treeCenter) renderTree(treeCenter);
+  } catch(err){
+    showToast('⚠ 保存に失敗しました');
+    console.error(err);
   }
-  closeModal(); renderTabs(); renderStats(); renderList();
-  if(currentMode==='tree'&&treeCenter) renderTree(treeCenter);
-}
-function deleteRecord(id,e){
-  e.stopPropagation();
-  const p=db.find(d=>d.id===id);
-  if(!p||!confirm(`「${p.name}」を削除しますか？`)) return;
-  db=db.filter(d=>d.id!==id);
-  saveDb(); renderTabs(); renderStats(); renderList();
-  if(currentMode==='tree'&&treeCenter){ if(treeCenter===p.name){ document.getElementById('treeSvgWrap').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">個体が削除されました</div>'; treeCenter=null; document.getElementById('treeCenterInfo').style.display='none'; } else renderTree(treeCenter); }
+  btn.disabled=false; btn.textContent='登録する';
 }
 
-// Init
-renderTabs(); renderStats(); renderList();
+/* ═══════════════════════════════════════
+   DELETE (password protected)
+═══════════════════════════════════════ */
+function askDelete(id,e){
+  e.stopPropagation();
+  const p=db.find(d=>d.id===id); if(!p) return;
+  deleteTargetId=id;
+  document.getElementById('pwModalMsg').textContent=`「${p.name}」を削除するにはパスワードを入力してください。`;
+  document.getElementById('pwInput').value='';
+  document.getElementById('pwError').style.display='none';
+  document.getElementById('pwModalBg').classList.add('open');
+}
+function closePwModal(){ document.getElementById('pwModalBg').classList.remove('open'); deleteTargetId=null; }
+async function confirmDelete(){
+  const pw=document.getElementById('pwInput').value;
+  if(pw!==DELETE_PASSWORD){ document.getElementById('pwError').style.display='block'; return; }
+  document.getElementById('pwModalBg').classList.remove('open');
+  try{
+    await deleteRecord_sb(deleteTargetId);
+    const p=db.find(d=>d.id===deleteTargetId);
+    db=db.filter(d=>d.id!==deleteTargetId);
+    showToast('🗑️ 削除しました');
+    renderTabs(); renderStats(); renderList();
+    if(currentMode==='tree'&&treeCenter){
+      if(p&&treeCenter===p.name){ document.getElementById('treeSvgWrap').innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">個体が削除されました</div>'; treeCenter=null; document.getElementById('treeCenterInfo').style.display='none'; }
+      else renderTree(treeCenter);
+    }
+  } catch(err){ showToast('⚠ 削除に失敗しました'); console.error(err); }
+  deleteTargetId=null;
+}
+
+init();
 </script>
 </body>
 </html>
