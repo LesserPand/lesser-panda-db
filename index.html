@@ -33,10 +33,12 @@
   /* ── Header ── */
   .header{background:var(--rust);padding:16px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(92,61,30,0.2);}
   .header-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-  .header-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
-  .header h1{font-size:18px;font-weight:700;color:white;line-height:1.2;}
+  .header-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .header-text{flex:1;min-width:0;}
+  .header-title-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+  .header h1{font-size:17px;font-weight:700;color:white;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .header p{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
-  .sync-badge{font-size:10px;padding:2px 8px;border-radius:50px;font-weight:700;margin-left:6px;}
+  .sync-badge{font-size:10px;padding:2px 7px;border-radius:50px;font-weight:700;white-space:nowrap;flex-shrink:0;}
   .sync-badge.ok{background:rgba(255,255,255,0.25);color:white;}
   .sync-badge.err{background:#F5C842;color:#5C3A00;}
   .search-bar{position:relative;margin-bottom:12px;}
@@ -47,6 +49,19 @@
   .mode-tabs{display:flex;border-top:1px solid rgba(255,255,255,0.2);}
   .mode-tab{flex:1;padding:10px 4px;font-family:inherit;font-size:13px;font-weight:700;border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.15s;}
   .mode-tab.active{color:white;border-bottom-color:white;}
+
+  /* ── Photo position adjuster ── */
+  .photo-adjuster-wrap{display:none;margin-top:10px;background:#F7F3F0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+  .photo-adjuster-wrap.show{display:block;}
+  .photo-adjuster-label{font-size:11px;color:var(--muted);padding:8px 12px 4px;font-weight:700;}
+  .photo-adjuster-hint{font-size:11px;color:var(--muted);padding:0 12px 8px;}
+  .photo-adjuster-viewport{position:relative;width:100%;height:180px;overflow:hidden;cursor:grab;touch-action:none;background:#e8e0d8;}
+  .photo-adjuster-viewport.grabbing{cursor:grabbing;}
+  .photo-adjuster-viewport img{position:absolute;transform-origin:top left;user-select:none;-webkit-user-drag:none;max-width:none;}
+  .photo-adjuster-controls{display:flex;align-items:center;gap:8px;padding:8px 12px;}
+  .zoom-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;color:var(--bark);flex-shrink:0;}
+  .zoom-slider{flex:1;accent-color:var(--rust);}
+  .photo-adjuster-reset{font-size:12px;color:var(--rust);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;padding:0 4px;}
 
   /* ── Filter / Stats ── */
   .filter-section{padding:12px 16px 0;background:white;border-bottom:1px solid var(--border);}
@@ -71,7 +86,8 @@
   .panda-card{background:white;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform 0.15s;box-shadow:var(--shadow);}
   .panda-card:active{transform:scale(0.98);}
   .panda-card.expanded{border-color:var(--rust-mid);}
-  .card-photo{width:100%;height:160px;object-fit:cover;display:block;background:var(--rust-light);}
+  .card-photo-wrap{width:100%;height:160px;overflow:hidden;background:var(--rust-light);position:relative;}
+  .card-photo{width:100%;height:100%;object-fit:cover;display:block;}
   .card-main{display:flex;align-items:center;padding:12px 14px;gap:12px;}
   .avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;position:relative;}
   .avatar.male{background:var(--male-bg);}
@@ -209,9 +225,42 @@
 <!-- Header -->
 <div class="header">
   <div class="header-top">
-    <div class="header-icon">🦝</div>
-    <div style="flex:1">
-      <h1>レッサーパンダ家系図DB <span class="sync-badge ok" id="syncBadge">● クラウド同期中</span></h1>
+    <div class="header-icon">
+      <!-- レッサーパンダ SVGアイコン -->
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 耳（黒） -->
+        <ellipse cx="22" cy="22" rx="13" ry="13" fill="#1a1a1a"/>
+        <ellipse cx="78" cy="22" rx="13" ry="13" fill="#1a1a1a"/>
+        <!-- 耳内側（赤茶） -->
+        <ellipse cx="22" cy="22" rx="8" ry="8" fill="#C85C2A"/>
+        <ellipse cx="78" cy="22" rx="8" ry="8" fill="#C85C2A"/>
+        <!-- 頭（赤茶） -->
+        <ellipse cx="50" cy="48" rx="32" ry="30" fill="#C85C2A"/>
+        <!-- 顔の白いほっぺ -->
+        <ellipse cx="32" cy="55" rx="13" ry="11" fill="#F5E8DE"/>
+        <ellipse cx="68" cy="55" rx="13" ry="11" fill="#F5E8DE"/>
+        <!-- 鼻筋（白） -->
+        <ellipse cx="50" cy="46" rx="10" ry="14" fill="#F5E8DE"/>
+        <!-- 目 -->
+        <ellipse cx="38" cy="42" rx="5" ry="5.5" fill="#1a1a1a"/>
+        <ellipse cx="62" cy="42" rx="5" ry="5.5" fill="#1a1a1a"/>
+        <!-- 目の光 -->
+        <circle cx="40" cy="40" r="1.5" fill="white"/>
+        <circle cx="64" cy="40" r="1.5" fill="white"/>
+        <!-- 鼻 -->
+        <ellipse cx="50" cy="56" rx="5" ry="3.5" fill="#1a1a1a"/>
+        <!-- 口 -->
+        <path d="M45 60 Q50 65 55 60" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- 目の下の黒いライン（レッサーパンダの特徴） -->
+        <path d="M33 47 Q38 52 32 55" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M67 47 Q62 52 68 55" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <div class="header-title-row">
+        <h1>レッサーパンダ家系図DB</h1>
+        <span class="sync-badge ok" id="syncBadge">● 同期中</span>
+      </div>
       <p>全国の動物園のレッサーパンダ記録</p>
     </div>
   </div>
@@ -291,6 +340,20 @@
         <input type="file" id="f_photo_file" accept="image/*" onchange="handleFileSelect(event)">
       </div>
       <img id="photo_preview_file" class="photo-preview" alt="プレビュー">
+      <!-- 写真位置調整 -->
+      <div class="photo-adjuster-wrap" id="photoAdjusterWrap">
+        <div class="photo-adjuster-label">📐 表示位置を調整</div>
+        <div class="photo-adjuster-hint">ドラッグで位置、スライダーで拡大縮小できます</div>
+        <div class="photo-adjuster-viewport" id="adjViewport">
+          <img id="adjImg" draggable="false" alt="">
+        </div>
+        <div class="photo-adjuster-controls">
+          <button class="zoom-btn" onclick="adjZoom(-0.1)">－</button>
+          <input type="range" class="zoom-slider" id="adjZoomSlider" min="0.5" max="3" step="0.05" value="1" oninput="adjZoomFromSlider()">
+          <button class="zoom-btn" onclick="adjZoom(0.1)">＋</button>
+          <button class="photo-adjuster-reset" onclick="adjReset()">リセット</button>
+        </div>
+      </div>
       <div class="copyright-notice">
         <div class="copyright-notice-text">
           ⚠️ <strong>著作権についてのお願い</strong><br>
@@ -374,7 +437,7 @@
    CONFIG
 ═══════════════════════════════════════ */
 const SUPABASE_URL = 'https://juwvubthmwbmidspjsxb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JUXZ2hwDb08v0Kgzb7FPWg_EuJqIacv';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1d3Z1YnRobXdibWlkc3Bqc3hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MzQwMzAsImV4cCI6MjA5NTAxMDAzMH0.JtkANbgyWSrSWX_OXuZl9NHUb8cH-FifSRw42BaHhSU';
 const DELETE_PASSWORD = 'Hideyoshi03';
 
 /* ═══════════════════════════════════════
@@ -387,7 +450,7 @@ async function sbFetch(path, options={}){
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': options.prefer || '',
+      ...(options.prefer ? {'Prefer': options.prefer} : {}),
       ...options.headers,
     },
   });
@@ -542,8 +605,9 @@ function renderList(){
     const transferred=isTransferred(p), dead=isDeceased(p);
     const age=calcAge(p.birth, p.death_date);
     const ageLabel=dead?(p.death_date?`享年${age}`:`享年${age}（推定）`):age;
-    const photoHtml=p.photo?`<img class="card-photo" src="${p.photo}" alt="${p.name}の写真" onerror="this.style.display='none'">`:'';
-    const avatarInner=p.photo?`<img src="${p.photo}" alt="${p.name}" onerror="this.innerHTML='🦝'">`:'🦝';
+    const pos=p.photo_pos||{x:50,y:50};
+    const photoHtml=p.photo?`<div class="card-photo-wrap"><img class="card-photo" src="${p.photo}" style="object-position:${pos.x}% ${pos.y}%" alt="${p.name}の写真" onerror="this.parentElement.style.display='none'"></div>`:'';
+    const avatarInner=p.photo?`<img src="${p.photo}" alt="${p.name}" onerror="this.innerHTML='🦝'">`:'<svg width="26" height="26" viewBox="0 0 100 100" fill="none"><ellipse cx="22" cy="22" rx="13" ry="13" fill="#1a1a1a"/><ellipse cx="78" cy="22" rx="13" ry="13" fill="#1a1a1a"/><ellipse cx="22" cy="22" rx="8" ry="8" fill="#C85C2A"/><ellipse cx="78" cy="22" rx="8" ry="8" fill="#C85C2A"/><ellipse cx="50" cy="48" rx="32" ry="30" fill="#C85C2A"/><ellipse cx="32" cy="55" rx="13" ry="11" fill="#F5E8DE"/><ellipse cx="68" cy="55" rx="13" ry="11" fill="#F5E8DE"/><ellipse cx="50" cy="46" rx="10" ry="14" fill="#F5E8DE"/><ellipse cx="38" cy="42" rx="5" ry="5.5" fill="#1a1a1a"/><ellipse cx="62" cy="42" rx="5" ry="5.5" fill="#1a1a1a"/><circle cx="40" cy="40" r="1.5" fill="white"/><circle cx="64" cy="40" r="1.5" fill="white"/><ellipse cx="50" cy="56" rx="5" ry="3.5" fill="#1a1a1a"/><path d="M45 60 Q50 65 55 60" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M33 47 Q38 52 32 55" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M67 47 Q62 52 68 55" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
     const fHtml=p.father
       ?`<div class="family-chip" onclick="jumpTo('${p.father}',event)"><div class="family-chip-role">👨 父</div><div class="family-chip-name">${p.father}</div><div class="family-chip-zoo">${father?father.zoo:''}</div></div>`
       :`<div class="family-chip unknown"><div class="family-chip-role">👨 父</div><div class="family-chip-name">不明</div></div>`;
@@ -731,12 +795,95 @@ function renderTree(centerName){
 }
 
 /* ═══════════════════════════════════════
+   PHOTO ADJUSTER
+═══════════════════════════════════════ */
+let adjState = { scale:1, x:0, y:0, dragging:false, startX:0, startY:0, startOX:0, startOY:0 };
+
+function adjApply(){
+  const img=document.getElementById('adjImg');
+  const vp=document.getElementById('adjViewport');
+  const vpW=vp.offsetWidth, vpH=vp.offsetHeight;
+  const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
+  // clamp so image always covers viewport
+  const minX=Math.min(0, vpW-iW), minY=Math.min(0, vpH-iH);
+  adjState.x=Math.max(minX, Math.min(0, adjState.x));
+  adjState.y=Math.max(minY, Math.min(0, adjState.y));
+  img.style.transform=`translate(${adjState.x}px,${adjState.y}px) scale(${adjState.scale})`;
+  img.style.width=img.naturalWidth+'px';
+  img.style.height=img.naturalHeight+'px';
+  document.getElementById('adjZoomSlider').value=adjState.scale;
+}
+function adjZoom(delta){
+  adjState.scale=Math.max(0.5, Math.min(3, adjState.scale+delta));
+  adjApply();
+}
+function adjZoomFromSlider(){
+  adjState.scale=parseFloat(document.getElementById('adjZoomSlider').value);
+  adjApply();
+}
+function adjReset(){
+  const img=document.getElementById('adjImg');
+  const vp=document.getElementById('adjViewport');
+  if(!img.naturalWidth) return;
+  const scaleW=vp.offsetWidth/img.naturalWidth, scaleH=vp.offsetHeight/img.naturalHeight;
+  adjState.scale=Math.max(scaleW,scaleH);
+  adjState.x=0; adjState.y=0;
+  adjApply();
+}
+function adjGetPos(){
+  // Convert pixel offset to object-position %
+  const img=document.getElementById('adjImg');
+  const vp=document.getElementById('adjViewport');
+  const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
+  const vpW=vp.offsetWidth, vpH=vp.offsetHeight;
+  const px= iW<=vpW ? 50 : Math.round((-adjState.x/(iW-vpW))*100);
+  const py= iH<=vpH ? 50 : Math.round((-adjState.y/(iH-vpH))*100);
+  return { x: Math.max(0,Math.min(100,px)), y: Math.max(0,Math.min(100,py)) };
+}
+function initAdjuster(src){
+  const wrap=document.getElementById('photoAdjusterWrap');
+  const img=document.getElementById('adjImg');
+  wrap.classList.add('show');
+  img.src=src;
+  img.onload=()=>{ adjState={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,startOX:0,startOY:0}; adjReset(); };
+  // Touch events
+  const vp=document.getElementById('adjViewport');
+  vp.onmousedown=e=>{ adjState.dragging=true; adjState.startX=e.clientX; adjState.startY=e.clientY; adjState.startOX=adjState.x; adjState.startOY=adjState.y; vp.classList.add('grabbing'); e.preventDefault(); };
+  window.onmousemove=e=>{ if(!adjState.dragging) return; adjState.x=adjState.startOX+(e.clientX-adjState.startX); adjState.y=adjState.startOY+(e.clientY-adjState.startY); adjApply(); };
+  window.onmouseup=()=>{ adjState.dragging=false; document.getElementById('adjViewport').classList.remove('grabbing'); };
+  vp.ontouchstart=e=>{ const t=e.touches[0]; adjState.dragging=true; adjState.startX=t.clientX; adjState.startY=t.clientY; adjState.startOX=adjState.x; adjState.startOY=adjState.y; e.preventDefault(); },{passive:false};
+  vp.ontouchmove=e=>{ if(!adjState.dragging) return; const t=e.touches[0]; adjState.x=adjState.startOX+(t.clientX-adjState.startX); adjState.y=adjState.startOY+(t.clientY-adjState.startY); adjApply(); e.preventDefault(); },{passive:false};
+  vp.ontouchend=()=>{ adjState.dragging=false; };
+}
+function restoreAdjuster(src, pos){
+  const wrap=document.getElementById('photoAdjusterWrap');
+  const img=document.getElementById('adjImg');
+  wrap.classList.add('show');
+  img.src=src;
+  img.onload=()=>{
+    const vp=document.getElementById('adjViewport');
+    const scaleW=vp.offsetWidth/img.naturalWidth, scaleH=vp.offsetHeight/img.naturalHeight;
+    adjState.scale=Math.max(scaleW,scaleH,1);
+    const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
+    adjState.x= iW<=vp.offsetWidth ? 0 : -(pos.x/100)*(iW-vp.offsetWidth);
+    adjState.y= iH<=vp.offsetHeight ? 0 : -(pos.y/100)*(iH-vp.offsetHeight);
+    adjApply();
+  };
+  initAdjuster(src);
+}
+
+/* ═══════════════════════════════════════
    FORM
 ═══════════════════════════════════════ */
 function handleFileSelect(e){
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{ pendingPhotoData=ev.target.result; const prev=document.getElementById('photo_preview_file'); prev.src=pendingPhotoData; prev.style.display='block'; };
+  reader.onload=ev=>{
+    pendingPhotoData=ev.target.result;
+    const prev=document.getElementById('photo_preview_file');
+    prev.src=pendingPhotoData; prev.style.display='block';
+    initAdjuster(pendingPhotoData);
+  };
   reader.readAsDataURL(file);
 }
 function populateParentSelects(excludeId=null){
@@ -749,7 +896,14 @@ function toggleDeathDate(){
   const checked=document.getElementById('f_is_dead').checked;
   document.getElementById('deathDateWrap').classList.toggle('show', checked);
 }
-function resetPhotoForm(){ pendingPhotoData=null; document.getElementById('f_photo_file').value=''; document.getElementById('photo_preview_file').style.display='none'; }
+function resetPhotoForm(){
+  pendingPhotoData=null;
+  document.getElementById('f_photo_file').value='';
+  document.getElementById('photo_preview_file').style.display='none';
+  document.getElementById('photoAdjusterWrap').classList.remove('show');
+  document.getElementById('adjImg').src='';
+  adjState={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,startOX:0,startOY:0};
+}
 function openAddModal(){
   editId=null;
   document.getElementById('formTitle').textContent='🦝 新しい個体を登録';
@@ -776,7 +930,13 @@ function openEditModal(id,e){
   document.getElementById('f_death_date').value=p.death_date||'';
   document.getElementById('deathDateWrap').classList.toggle('show', dead);
   resetPhotoForm();
-  if(p.photo){ pendingPhotoData=p.photo; const prev=document.getElementById('photo_preview_file'); prev.src=p.photo; prev.style.display='block'; }
+  if(p.photo){
+    pendingPhotoData=p.photo;
+    const prev=document.getElementById('photo_preview_file');
+    prev.src=p.photo; prev.style.display='block';
+    const pos=p.photo_pos||{x:50,y:50};
+    restoreAdjuster(p.photo, pos);
+  }
   populateParentSelects(id);
   setTimeout(()=>{ document.getElementById('f_father').value=p.father||''; document.getElementById('f_mother').value=p.mother||''; },0);
   document.getElementById('modalBg').classList.add('open');
@@ -794,11 +954,13 @@ async function saveRecord(){
   const gender=document.querySelector('input[name="gender"]:checked').value;
   const isDead=document.getElementById('f_is_dead').checked;
   const deathDate=document.getElementById('f_death_date').value;
+  const photoPos = pendingPhotoData ? adjGetPos() : null;
   const record={
     name, gender,
     birth:document.getElementById('f_birth').value||null,
     birth_zoo:document.getElementById('f_birth_zoo').value.trim()||null,
     zoo, photo:pendingPhotoData||null,
+    photo_pos: photoPos,
     father:document.getElementById('f_father').value||null,
     mother:document.getElementById('f_mother').value||null,
     notes:document.getElementById('f_notes').value.trim()||null,
