@@ -774,77 +774,131 @@ function renderTree(centerName){
 ═══════════════════════════════════════ */
 let adjState = { scale:1, x:0, y:0, dragging:false, startX:0, startY:0, startOX:0, startOY:0 };
 
-function adjApply(){
+function adjClamp(){
   const img=document.getElementById('adjImg');
   const vp=document.getElementById('adjViewport');
-  const vpW=vp.offsetWidth, vpH=vp.offsetHeight;
   const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
-  // clamp so image always covers viewport
-  const minX=Math.min(0, vpW-iW), minY=Math.min(0, vpH-iH);
+  const minX=Math.min(0, vp.offsetWidth-iW), minY=Math.min(0, vp.offsetHeight-iH);
   adjState.x=Math.max(minX, Math.min(0, adjState.x));
   adjState.y=Math.max(minY, Math.min(0, adjState.y));
+}
+function adjApply(){
+  const img=document.getElementById('adjImg');
+  adjClamp();
   img.style.transform=`translate(${adjState.x}px,${adjState.y}px) scale(${adjState.scale})`;
   img.style.width=img.naturalWidth+'px';
   img.style.height=img.naturalHeight+'px';
   document.getElementById('adjZoomSlider').value=adjState.scale;
 }
-function adjZoom(delta){
-  adjState.scale=Math.max(0.5, Math.min(3, adjState.scale+delta));
+
+// ズーム：ビューポート中心を基準に拡縮
+function adjZoomAround(newScale){
+  const img=document.getElementById('adjImg');
+  const vp=document.getElementById('adjViewport');
+  const vpCX=vp.offsetWidth/2, vpCY=vp.offsetHeight/2;
+  // 現在のscaleでの、ビューポート中心が画像上のどこに対応するか
+  const imgX=(vpCX - adjState.x) / adjState.scale;
+  const imgY=(vpCY - adjState.y) / adjState.scale;
+  // 新scaleで同じ画像座標が中心に来るよう offset を調整
+  adjState.scale=Math.max(adjState.minScale, Math.min(3, newScale));
+  adjState.x=vpCX - imgX * adjState.scale;
+  adjState.y=vpCY - imgY * adjState.scale;
   adjApply();
 }
+function adjZoom(delta){ adjZoomAround(adjState.scale + delta); }
 function adjZoomFromSlider(){
-  adjState.scale=parseFloat(document.getElementById('adjZoomSlider').value);
-  adjApply();
+  adjZoomAround(parseFloat(document.getElementById('adjZoomSlider').value));
 }
+
 function adjReset(){
   const img=document.getElementById('adjImg');
   const vp=document.getElementById('adjViewport');
   if(!img.naturalWidth) return;
   const scaleW=vp.offsetWidth/img.naturalWidth, scaleH=vp.offsetHeight/img.naturalHeight;
-  adjState.scale=Math.max(scaleW,scaleH);
+  adjState.minScale=Math.max(scaleW, scaleH);
+  adjState.scale=adjState.minScale;
   adjState.x=0; adjState.y=0;
+  // スライダーのmin/maxを画像に合わせて設定
+  const slider=document.getElementById('adjZoomSlider');
+  slider.min=adjState.minScale.toFixed(3);
+  slider.max=Math.max(3, adjState.minScale*2).toFixed(3);
+  slider.step=0.01;
   adjApply();
 }
+
 function adjGetPos(){
-  // Convert pixel offset to object-position %
   const img=document.getElementById('adjImg');
   const vp=document.getElementById('adjViewport');
   const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
   const vpW=vp.offsetWidth, vpH=vp.offsetHeight;
   const px= iW<=vpW ? 50 : Math.round((-adjState.x/(iW-vpW))*100);
   const py= iH<=vpH ? 50 : Math.round((-adjState.y/(iH-vpH))*100);
-  return { x: Math.max(0,Math.min(100,px)), y: Math.max(0,Math.min(100,py)) };
+  return { x:Math.max(0,Math.min(100,px)), y:Math.max(0,Math.min(100,py)) };
 }
-function initAdjuster(src){
-  const wrap=document.getElementById('photoAdjusterWrap');
-  const img=document.getElementById('adjImg');
-  wrap.classList.add('show');
-  img.src=src;
-  img.onload=()=>{ adjState={scale:1,x:0,y:0,dragging:false,startX:0,startY:0,startOX:0,startOY:0}; adjReset(); };
-  // Touch events
+
+function adjSetupEvents(){
   const vp=document.getElementById('adjViewport');
-  vp.onmousedown=e=>{ adjState.dragging=true; adjState.startX=e.clientX; adjState.startY=e.clientY; adjState.startOX=adjState.x; adjState.startOY=adjState.y; vp.classList.add('grabbing'); e.preventDefault(); };
-  window.onmousemove=e=>{ if(!adjState.dragging) return; adjState.x=adjState.startOX+(e.clientX-adjState.startX); adjState.y=adjState.startOY+(e.clientY-adjState.startY); adjApply(); };
+  vp.onmousedown=e=>{
+    adjState.dragging=true; adjState.startX=e.clientX; adjState.startY=e.clientY;
+    adjState.startOX=adjState.x; adjState.startOY=adjState.y;
+    vp.classList.add('grabbing'); e.preventDefault();
+  };
+  window.onmousemove=e=>{
+    if(!adjState.dragging) return;
+    adjState.x=adjState.startOX+(e.clientX-adjState.startX);
+    adjState.y=adjState.startOY+(e.clientY-adjState.startY);
+    adjApply();
+  };
   window.onmouseup=()=>{ adjState.dragging=false; document.getElementById('adjViewport').classList.remove('grabbing'); };
-  vp.ontouchstart=e=>{ const t=e.touches[0]; adjState.dragging=true; adjState.startX=t.clientX; adjState.startY=t.clientY; adjState.startOX=adjState.x; adjState.startOY=adjState.y; e.preventDefault(); },{passive:false};
-  vp.ontouchmove=e=>{ if(!adjState.dragging) return; const t=e.touches[0]; adjState.x=adjState.startOX+(t.clientX-adjState.startX); adjState.y=adjState.startOY+(t.clientY-adjState.startY); adjApply(); e.preventDefault(); },{passive:false};
+  vp.ontouchstart=e=>{
+    const t=e.touches[0]; adjState.dragging=true;
+    adjState.startX=t.clientX; adjState.startY=t.clientY;
+    adjState.startOX=adjState.x; adjState.startOY=adjState.y;
+    e.preventDefault();
+  };
+  vp.ontouchmove=e=>{
+    if(!adjState.dragging) return;
+    const t=e.touches[0];
+    adjState.x=adjState.startOX+(t.clientX-adjState.startX);
+    adjState.y=adjState.startOY+(t.clientY-adjState.startY);
+    adjApply(); e.preventDefault();
+  };
   vp.ontouchend=()=>{ adjState.dragging=false; };
 }
-function restoreAdjuster(src, pos){
-  const wrap=document.getElementById('photoAdjusterWrap');
+
+function initAdjuster(src){
+  document.getElementById('photoAdjusterWrap').classList.add('show');
   const img=document.getElementById('adjImg');
-  wrap.classList.add('show');
+  adjSetupEvents();
+  img.src=src;
+  img.onload=()=>{
+    adjState={scale:1,minScale:1,x:0,y:0,dragging:false,startX:0,startY:0,startOX:0,startOY:0};
+    adjReset();
+  };
+}
+
+// 編集時：保存済みの位置を復元
+function restoreAdjuster(src, pos){
+  document.getElementById('photoAdjusterWrap').classList.add('show');
+  const img=document.getElementById('adjImg');
+  adjSetupEvents();
   img.src=src;
   img.onload=()=>{
     const vp=document.getElementById('adjViewport');
     const scaleW=vp.offsetWidth/img.naturalWidth, scaleH=vp.offsetHeight/img.naturalHeight;
-    adjState.scale=Math.max(scaleW,scaleH,1);
-    const iW=img.naturalWidth*adjState.scale, iH=img.naturalHeight*adjState.scale;
-    adjState.x= iW<=vp.offsetWidth ? 0 : -(pos.x/100)*(iW-vp.offsetWidth);
+    const minScale=Math.max(scaleW,scaleH);
+    adjState.minScale=minScale;
+    adjState.scale=minScale;
+    // pos(%)からpx offsetを復元
+    const iW=img.naturalWidth*minScale, iH=img.naturalHeight*minScale;
+    adjState.x= iW<=vp.offsetWidth  ? 0 : -(pos.x/100)*(iW-vp.offsetWidth);
     adjState.y= iH<=vp.offsetHeight ? 0 : -(pos.y/100)*(iH-vp.offsetHeight);
+    const slider=document.getElementById('adjZoomSlider');
+    slider.min=minScale.toFixed(3);
+    slider.max=Math.max(3, minScale*2).toFixed(3);
+    slider.step=0.01;
     adjApply();
   };
-  initAdjuster(src);
 }
 
 /* ═══════════════════════════════════════
@@ -998,6 +1052,6 @@ async function confirmDelete(){
 init();
 </script>
 
-<div style="text-align:center;font-size:10px;color:#ccc;padding:8px 0;user-select:none;">v2.4.4</div>
+<div style="text-align:center;font-size:10px;color:#ccc;padding:8px 0;user-select:none;">v2.5.0</div>
 </body>
 </html>
